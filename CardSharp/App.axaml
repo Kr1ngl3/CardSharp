@@ -1,0 +1,76 @@
+<Application
+    x:Class="CardSharp.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CardSharp"
+    RequestedThemeVariant="Default">
+    <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+    <Application.Styles>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources
+                    x:Key="Light"
+                    Accent="#ff2976cc"
+                    AltHigh="White"
+                    AltLow="White"
+                    AltMedium="White"
+                    AltMediumHigh="White"
+                    AltMediumLow="White"
+                    BaseHigh="Black"
+                    BaseLow="#b573d2ff"
+                    BaseMedium="#e12e91bf"
+                    BaseMediumHigh="#ff006694"
+                    BaseMediumLow="#f0177ca9"
+                    ChromeAltLow="#ff006694"
+                    ChromeBlackHigh="Black"
+                    ChromeBlackLow="#b573d2ff"
+                    ChromeBlackMedium="#ff006694"
+                    ChromeBlackMediumLow="#e12e91bf"
+                    ChromeDisabledHigh="#b573d2ff"
+                    ChromeDisabledLow="#e12e91bf"
+                    ChromeGray="#f0177ca9"
+                    ChromeHigh="#b573d2ff"
+                    ChromeLow="#ffbcf0ff"
+                    ChromeMedium="#f0adeaff"
+                    ChromeMediumLow="#ffbcf0ff"
+                    ChromeWhite="White"
+                    ListLow="#f0adeaff"
+                    ListMedium="#b573d2ff"
+                    RegionColor="#ffd9d9ff" />
+                <ColorPaletteResources
+                    x:Key="Dark"
+                    Accent="#ff2976cc"
+                    AltHigh="Black"
+                    AltLow="Black"
+                    AltMedium="Black"
+                    AltMediumHigh="Black"
+                    AltMediumLow="Black"
+                    BaseHigh="White"
+                    BaseLow="#ff2d327d"
+                    BaseMedium="#ff9598c7"
+                    BaseMediumHigh="#ffafb2da"
+                    BaseMediumLow="#ff6165a2"
+                    ChromeAltLow="#ffafb2da"
+                    ChromeBlackHigh="Black"
+                    ChromeBlackLow="#ffafb2da"
+                    ChromeBlackMedium="Black"
+                    ChromeBlackMediumLow="Black"
+                    ChromeDisabledHigh="#ff2d327d"
+                    ChromeDisabledLow="#ff9598c7"
+                    ChromeGray="#ff7b7fb5"
+                    ChromeHigh="#ff7b7fb5"
+                    ChromeLow="#ff09144f"
+                    ChromeMedium="#ff121b5b"
+                    ChromeMediumLow="#ff242a72"
+                    ChromeWhite="White"
+                    ListLow="#ff121b5b"
+                    ListMedium="#ff2d327d"
+                    RegionColor="#ff202338" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
+
+    </Application.Styles>
+</Application>
