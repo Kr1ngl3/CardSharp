@@ -39,7 +39,7 @@
                     ChromeWhite="White"
                     ListLow="#f0adeaff"
                     ListMedium="#b573d2ff"
-                    RegionColor="#ffd9d9ff" />
+                    RegionColor="#ffb3b3ff" />
                 <ColorPaletteResources
                     x:Key="Dark"
                     Accent="#ff2976cc"

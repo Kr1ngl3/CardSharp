@@ -1,9 +1,12 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
 using CardSharp.ViewModels;
 using CardSharp.Views;
+using System;
+using System.Diagnostics;
 
 namespace CardSharp;
 
@@ -18,17 +21,13 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel()
-            };
+            desktop.MainWindow = new MainWindow();
+            desktop.MainWindow.DataContext = new MainViewModel(desktop.MainWindow);
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = new MainViewModel()
-            };
+            singleViewPlatform.MainView = new MainView();
+            singleViewPlatform.MainView.DataContext = new MainViewModel((TopLevel)singleViewPlatform.MainView);
         }
 
         base.OnFrameworkInitializationCompleted();

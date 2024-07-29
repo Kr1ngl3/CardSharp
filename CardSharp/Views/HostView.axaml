@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="CardSharp.Views.HostView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:CardSharp.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:HostViewModel"
+    mc:Ignorable="d">
+
+    <StackPanel>
+        <StackPanel.Styles>
+            <Style Selector=":is(Control)">
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </StackPanel.Styles>
+        <Button Command="{CompiledBinding Host}">Start Host</Button>
+        <Border
+            Background="{DynamicResource SystemBaseMediumLowColor}"
+            BorderBrush="{DynamicResource SystemBaseMediumLowColor}"
+            BorderThickness="2">
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                <SelectableTextBlock Text="{CompiledBinding Greeting}" />
+                <Button Command="{CompiledBinding Copy}">
+                    <Image Height="16" Source="/Assets/clipboard.png" />
+                </Button>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

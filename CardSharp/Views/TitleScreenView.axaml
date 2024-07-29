@@ -9,6 +9,11 @@
     d:DesignWidth="800"
     x:DataType="vm:TitleScreenViewModel"
     mc:Ignorable="d">
+
+    <Design.DataContext>
+        <vm:TitleScreenViewModel />
+    </Design.DataContext>
+
     <StackPanel Orientation="Vertical">
         <StackPanel.Styles>
             <Style Selector=":is(Control)">
@@ -17,7 +22,7 @@
                 <Setter Property="Margin" Value="10" />
             </Style>
         </StackPanel.Styles>
-		<SelectableTextBlock Text="{CompiledBinding Greeting}" />
+        <SelectableTextBlock Text="{CompiledBinding Greeting}" />
         <StackPanel Orientation="Horizontal">
             <Button Command="{CompiledBinding HostGame}">Click to host</Button>
             <Button Command="{CompiledBinding JoinGame}">Click to join</Button>
