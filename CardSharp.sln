@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardSharp", "CardSharp\Card
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardSharp.Android", "CardSharp.Android\CardSharp.Android.csproj", "{F311D7E0-55AC-4472-A630-139BA4C9AA83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardSharp.Browser", "CardSharp.Browser\CardSharp.Browser.csproj", "{2058FCB1-9278-4034-9031-14CF91A2ADED}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardSharp.Desktop", "CardSharp.Desktop\CardSharp.Desktop.csproj", "{185C106B-4C42-410D-A066-B78CE1A7BBFE}"
 EndProject
 Global
@@ -27,10 +25,6 @@ Global
 		{F311D7E0-55AC-4472-A630-139BA4C9AA83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F311D7E0-55AC-4472-A630-139BA4C9AA83}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F311D7E0-55AC-4472-A630-139BA4C9AA83}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{2058FCB1-9278-4034-9031-14CF91A2ADED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2058FCB1-9278-4034-9031-14CF91A2ADED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2058FCB1-9278-4034-9031-14CF91A2ADED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2058FCB1-9278-4034-9031-14CF91A2ADED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{185C106B-4C42-410D-A066-B78CE1A7BBFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{185C106B-4C42-410D-A066-B78CE1A7BBFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{185C106B-4C42-410D-A066-B78CE1A7BBFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
