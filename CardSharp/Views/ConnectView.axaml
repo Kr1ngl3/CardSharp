@@ -9,5 +9,19 @@
     d:DesignWidth="800"
     x:DataType="vm:ConnectViewModel"
     mc:Ignorable="d">
-    <TextBlock Text="{CompiledBinding Greeting}" />
+    <StackPanel Orientation="Vertical">
+        <StackPanel.Styles>
+            <Style Selector=":is(Control)">
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="10" />
+            </Style>
+        </StackPanel.Styles>
+		<SelectableTextBlock Text="{CompiledBinding Greeting}" />
+        <StackPanel Orientation="Horizontal">
+            <Button Command="{CompiledBinding HostGame}">Click to host</Button>
+            <Button Command="{CompiledBinding JoinGame}">Click to join</Button>
+        </StackPanel>
+        <TextBox Text="{CompiledBinding Ip}" />
+    </StackPanel>
 </UserControl>
