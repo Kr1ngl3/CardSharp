@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace CardSharp.Views;
 
-public partial class ConnectView : UserControl
+public partial class TitleScreenView : UserControl
 {
-    public ConnectView()
+    public TitleScreenView()
     {
         InitializeComponent();
     }

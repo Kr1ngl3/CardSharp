@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace CardSharp.ViewModels;
-public class ConnectViewModel : ViewModelBase
+public class TitleScreenViewModel : ViewModelBase
 {
     private string _greeting = "Hello there";
     public string Greeting { get => _greeting; set => this.RaiseAndSetIfChanged(ref _greeting, value, nameof(Greeting)); }

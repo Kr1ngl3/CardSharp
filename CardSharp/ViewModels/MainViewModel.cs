@@ -15,6 +15,6 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
-        _currentViewModel = new ConnectViewModel();
+        _currentViewModel = new TitleScreenViewModel();
     }
 }

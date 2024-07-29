@@ -19,4 +19,10 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="SSH.NET" Version="2024.1.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\TitleScreenView.axaml.cs">
+      <DependentUpon>TitleScreenView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>
