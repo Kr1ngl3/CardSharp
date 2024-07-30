@@ -13,7 +13,20 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel(TopLevel topLevel)
     {
-        _currentViewModel = new TitleScreenViewModel(() => CurrentViewModel = new HostViewModel(topLevel.Clipboard));
+        _currentViewModel = new TitleScreenViewModel(() => CurrentViewModel = new HostViewModel(i => CurrentViewModel = new GameViewModel(i), topLevel.Clipboard));
         _topLevel = topLevel;
+        _topLevel.Loaded += _topLevel_Loaded;
+
+        if (_topLevel.InsetsManager is not null)
+        {
+            _topLevel.InsetsManager.DisplayEdgeToEdge = true;
+            _topLevel.InsetsManager.IsSystemBarVisible = false;
+        }
+    }
+
+    private void _topLevel_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var temp = _topLevel.Height;
+        var temp2 = _topLevel.Width;
     }
 }

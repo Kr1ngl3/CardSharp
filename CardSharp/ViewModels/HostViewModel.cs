@@ -12,25 +12,40 @@ using Avalonia.Rendering;
 using Avalonia.Threading;
 using System.Diagnostics;
 using CardSharp.Models;
+using Avalonia.Collections;
+using System.Collections.Generic;
 
 namespace CardSharp.ViewModels;
 
 public class HostViewModel : ViewModelBase
 {
     private Server _server = new Server();
+    private Action<int> _toGame;
     private IClipboard? _clipboard;
     private string _greeting = "Welcome";
+    private AvaloniaList<string> _names = new AvaloniaList<string>();
+
     public string Greeting { get => _greeting; set => this.RaiseAndSetIfChanged(ref _greeting, value, nameof(Greeting)); }
+    public IEnumerable<string> Names => _names;
 
-
-    public HostViewModel(IClipboard? clipBoard)
+    public HostViewModel(Action<int> toGame, IClipboard? clipBoard)
     {
         _clipboard = clipBoard;
+        _toGame = toGame;
     }
 
     public async Task Host()
     {
         Greeting = await _server.GetHost();
+        await foreach (string name in _server.GetNames())
+            _names.Add(name);
+    }
+
+    public void Cancel()
+    {
+        _server.CancelSearch();
+        Greeting = "Started game";
+        _toGame(_names.Count);
     }
 
     public async Task Copy()

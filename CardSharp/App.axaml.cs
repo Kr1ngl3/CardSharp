@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Platform;
 using Avalonia.Markup.Xaml;
 
 using CardSharp.ViewModels;
@@ -27,9 +28,8 @@ public partial class App : Application
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
             singleViewPlatform.MainView = new MainView();
-            singleViewPlatform.MainView.DataContext = new MainViewModel((TopLevel)singleViewPlatform.MainView);
+            singleViewPlatform.MainView.DataContext = new MainViewModel(TopLevel.GetTopLevel(singleViewPlatform.MainView)!);
         }
-
         base.OnFrameworkInitializationCompleted();
     }
 }
