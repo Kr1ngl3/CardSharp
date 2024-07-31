@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:CardSharp.ViewModels"
     d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignWidth="1200"
     x:DataType="vm:GameViewModel"
     mc:Ignorable="d">
     <UserControl.DataTemplates>
@@ -16,14 +16,14 @@
     <Design.DataContext>
         <vm:GameViewModel />
     </Design.DataContext>
-    <Canvas>
-        <ContentControl
-            Canvas.Left="10"
-            Canvas.Top="10"
-            Content="{CompiledBinding Card}" />
-        <ContentControl
-            Canvas.Left="20"
-            Canvas.Top="10"
-            Content="{CompiledBinding Card2}" />
-    </Canvas>
+    <Panel>
+        <ItemsControl ItemsSource="{CompiledBinding CardList}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <c:CardStackPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+		<Button Command="{CompiledBinding Add}">Add</Button>
+    </Panel>
 </UserControl>

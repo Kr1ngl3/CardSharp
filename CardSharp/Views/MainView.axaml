@@ -16,6 +16,22 @@
         -->
         <vm:MainViewModel />
     </Design.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="{CompiledBinding ScreenWidth}" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="{CompiledBinding ScreenHeight}" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-    <ContentControl Content="{CompiledBinding CurrentViewModel}" />
+        <ContentControl
+			Background="Red"
+            Grid.Row="1"
+            Grid.Column="1"
+            Content="{CompiledBinding CurrentViewModel}" />
+    </Grid>
 </UserControl>

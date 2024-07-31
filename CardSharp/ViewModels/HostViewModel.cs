@@ -19,7 +19,7 @@ namespace CardSharp.ViewModels;
 
 public class HostViewModel : ViewModelBase
 {
-    private Server _server = new Server();
+    private Server _server = new TestServer(4);
     private Action<int> _toGame;
     private IClipboard? _clipboard;
     private string _greeting = "Welcome";

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Controls.Platform;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace CardSharp.Models;
 
 public class Card
 {
+    private static Random s_random = new Random();
     public enum Suits
     {
         Heart,
@@ -16,6 +18,41 @@ public class Card
         Club
     }
 
+    public enum Ranks
+    {
+        Ace,
+        Two,
+        Three,
+        Four,
+        Five,
+        Six,
+        Seven,
+        Eight,
+        Nine,
+        Ten,
+        Jack,
+        Queen,
+        King,
+        Joker
+    }
+
+    public static Dictionary<Ranks, string> SRanksToSymbol = new Dictionary<Ranks, string>()
+    {
+        { Ranks.Ace, "A"},
+        { Ranks.Two, "2"},
+        { Ranks.Three, "3"},
+        { Ranks.Four, "4"},
+        { Ranks.Five, "5"},
+        { Ranks.Six, "6"},
+        { Ranks.Seven, "7"},
+        { Ranks.Eight, "8"},
+        { Ranks.Nine, "9"},
+        { Ranks.Ten, "10"},
+        { Ranks.Jack, "J"},
+        { Ranks.Queen, "Q"},
+        { Ranks.King, "K"},
+        { Ranks.Joker, "Jo"},
+    };
     private static string[] s_iconSources = {
         @"/Assets/heart.png",
         @"/Assets/diamond.png",
@@ -23,17 +60,19 @@ public class Card
         @"/Assets/club.png"
     };
 
-    private int _rank;
+    private Ranks _rank;
     private Suits _suit;
 
-    public int Rank => _rank;
+    public Ranks Rank => _rank;
     public string Suit => GetSuitSource(_suit);
 
-    public Card()
+    public Card() : this(s_random.Next(14))
     {
-        Random random = new Random();
-        _suit = (Suits)random.Next(Enum.GetValues(typeof(Suits)).Length);
-        _rank = random.Next(13);
+    }
+    public Card(int rank)
+    {
+        _suit = (Suits)s_random.Next(Enum.GetValues(typeof(Suits)).Length);
+        _rank = (Ranks)rank;
     }
 
     private string GetSuitSource(Suits suit)
