@@ -14,36 +14,27 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CardSharp.Controls;
-public class CardTemplate : IDataTemplate
+public class CardControl : Border
 {
-    public Control? Build(object? data)
+    public CardControl()
     {
-        if (data is null)
-            return null;
+        Card card = new Card();
+        CornerRadius = new CornerRadius(5);
+        Width = 2 * 100;
+        Height = 3 * 100;
+        Background = Brushes.White;
 
-        // card width = 1/12 of screen
-        // card height = 2/9 of screen
-        // card is 2/3
-        // border with symbol is 1/5
-        // center is 3/5
 
-        Card card = (data as Card)!;
+        BorderBrush = Brushes.Black;
+        BorderThickness = new Thickness(2);
+        Padding = new Thickness(2);
 
-        Border border = new Border();
-        border.CornerRadius = new CornerRadius(5);
-        border.Width = 2 * 100;
-        border.Height = 3 * 100;
-        border.Background = Brushes.White;
-        border.Padding = new Thickness(border.Width *.75 / 20);
-        
-        double width = border.Width;
-        
-        border.BorderBrush = Brushes.Black;
-        border.BorderThickness = new Thickness(-4);
+        double width = Width + (BorderThickness - Padding).Right + (BorderThickness - Padding).Left;
+        double height = Height + (BorderThickness - Padding).Top + (BorderThickness - Padding).Bottom;
 
 
         StackPanel panel = new StackPanel();
-        border.Child = panel;
+        Child = panel;
         panel.Orientation = Avalonia.Layout.Orientation.Horizontal;
 
         StackPanel topLeftPanel = new StackPanel();
@@ -60,6 +51,7 @@ public class CardTemplate : IDataTemplate
 
 
         botRightPanel.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom;
+        botRightPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
 
 
         topLeftPanel.Children.Add(new TextBlock()
@@ -74,6 +66,15 @@ public class CardTemplate : IDataTemplate
             Source = new Bitmap(AssetLoader.Open(new Uri($"avares://CardSharp{card.Suit}"))),
         });
 
+        botRightPanel.Children.Add(new Image()
+        {
+            RenderTransform = new RotateTransform()
+            {
+                Angle = 180
+            },
+            Stretch = Stretch.Uniform,
+            Source = new Bitmap(AssetLoader.Open(new Uri($"avares://CardSharp{card.Suit}"))),
+        });
         botRightPanel.Children.Add(new TextBlock()
         {
             RenderTransform = new RotateTransform()
@@ -83,15 +84,6 @@ public class CardTemplate : IDataTemplate
             Foreground = Brushes.Black,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
             Text = Card.SRanksToSymbol[card.Rank]
-        });
-        botRightPanel.Children.Add(new Image()
-        {
-            RenderTransform = new RotateTransform()
-            {
-                Angle = 180
-            },
-            Stretch = Stretch.Uniform,
-            Source = new Bitmap(AssetLoader.Open(new Uri($"avares://CardSharp{card.Suit}"))),
         });
 
 
@@ -128,7 +120,7 @@ public class CardTemplate : IDataTemplate
                         Stretch = Stretch.Uniform,
                         Source = new Bitmap(AssetLoader.Open(new Uri($"avares://CardSharp{card.Suit}"))),
                     });
-                    
+
                 }
                 break;
             case Card.Ranks.Four:
@@ -147,7 +139,7 @@ public class CardTemplate : IDataTemplate
                     }
                     columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                     {
-                        Margin = i < 2 ? new Thickness(0, 0, 0, border.Height / 5) : new Thickness(0, border.Height / 5, 0, 0),
+                        Margin = i < 2 ? new Thickness(0, 0, 0, height / 5) : new Thickness(0, height / 5, 0, 0),
                         Stretch = Stretch.Uniform,
                         Source = new Bitmap(AssetLoader.Open(new Uri($"avares://CardSharp{card.Suit}"))),
                     });
@@ -209,13 +201,5 @@ public class CardTemplate : IDataTemplate
                 });
                 break;
         }
-
-
-        return border;
-    }
-
-    public bool Match(object? data)
-    {
-        return data is Card;
     }
 }

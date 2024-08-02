@@ -2,7 +2,10 @@
     x:Class="CardSharp.Views.TitleScreenView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:CardSharp.Controls"
+    xmlns:cv="clr-namespace:CardSharp.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:CardSharp.ViewModels"
     d:DesignHeight="450"
@@ -14,19 +17,12 @@
         <vm:TitleScreenViewModel />
     </Design.DataContext>
 
-    <StackPanel Orientation="Vertical">
-        <StackPanel.Styles>
-            <Style Selector=":is(Control)">
-                <Setter Property="HorizontalAlignment" Value="Center" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Margin" Value="10" />
-            </Style>
-        </StackPanel.Styles>
+    <StackPanel>
         <SelectableTextBlock Text="{CompiledBinding Greeting}" />
         <StackPanel Orientation="Horizontal">
             <Button Command="{CompiledBinding HostGame}">Click to host</Button>
             <Button Command="{CompiledBinding JoinGame}">Click to join</Button>
         </StackPanel>
-        <TextBox Text="{CompiledBinding Ip}" />
+        <TextBox Width="{CompiledBinding ScreenWidth, Converter={x:Static cv:FuncConverters.Mult}, ConverterParameter=.5}" Text="{CompiledBinding Ip}" />
     </StackPanel>
 </UserControl>

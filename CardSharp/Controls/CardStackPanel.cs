@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using System;
 using Avalonia.Media;
 using System.Security.Cryptography;
+using System.Collections.Generic;
 
 namespace CardSharp.Controls;
 public class CardStackPanel : StackPanel
@@ -20,8 +21,8 @@ public class CardStackPanel : StackPanel
     /// </summary>
     public static readonly StyledProperty<double> CurveProperty =
         AvaloniaProperty.Register<StackPanel, double>(nameof(Curve));
-    
-    
+
+
     /// <summary>
     /// Gets or sets how muc heach card is rotated depending on index from middle
     /// </summary>

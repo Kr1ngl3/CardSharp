@@ -4,26 +4,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:c="clr-namespace:CardSharp.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:m="clr-namespace:CardSharp.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:CardSharp.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="1200"
     x:DataType="vm:GameViewModel"
     mc:Ignorable="d">
-    <UserControl.DataTemplates>
-        <c:CardTemplate />
-    </UserControl.DataTemplates>
-    <Design.DataContext>
-        <vm:GameViewModel />
-    </Design.DataContext>
-    <Panel>
-        <ItemsControl ItemsSource="{CompiledBinding CardList}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <c:CardStackPanel/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
-		<Button Command="{CompiledBinding Add}">Add</Button>
-    </Panel>
+    <UserControl.Resources>
+        <DrawingImage x:Key="SuitHeart">
+            <DrawingGroup>
+                <GeometryDrawing Brush="White" Geometry="M108 65c-22 0-25 22-25 22s-3-22-25-22c-15 0-29 10-29 29 0 24 44 49 54 86 9-37 55-62 55-86 0-19-14-29-30-29z" />
+            </DrawingGroup>
+        </DrawingImage>
+    </UserControl.Resources>
+    <c:Table Background="Blue">
+        <c:CardControl />
+        <c:CardControl Canvas.Top="20" />
+    </c:Table>
 </UserControl>
