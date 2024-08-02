@@ -3,8 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
+using CardSharp.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +18,22 @@ public class Table : Canvas
     private Point _homePoint;
     private bool _isDragging;
     private Visual? _draggington;
+
+    public Table()
+    {
+        Children.Add(new Card()
+        {
+            DataContext = new CardViewModel()
+        });
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        if (DataContext is GameViewModel vm)
+            Trace.WriteLine("HIHI");
+
+        base.OnAttachedToVisualTree(e);
+    }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
@@ -39,19 +57,17 @@ public class Table : Canvas
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
-        var absCur = e.GetCurrentPoint(TopLevel.GetTopLevel(this));
-        var absCurPos = absCur.Position;
-
-        foreach (var visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(absCurPos)
-                     .OrderByDescending(x => x.ZIndex))
+        foreach (var visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(e.GetCurrentPoint(TopLevel.GetTopLevel(this)).Position)
+                     .OrderBy(x => x.ZIndex))
         {
-            if (visual is CardControl)
-            {
-                _dragStart = e.GetCurrentPoint(this).Position;
-                _draggington = visual;
-                _isDragging = true;
-                _homePoint = new Point(visual.Bounds.Position.X, visual.Bounds.Position.Y);
-            }
+            if (visual is not Border { DataContext: CardViewModel cvm} border) 
+                continue;
+            Card card = (Children.FirstOrDefault(x => x.DataContext == cvm) as Card)!;
+            _dragStart = e.GetCurrentPoint(this).Position;
+            _draggington = card;
+            _isDragging = true;
+            _homePoint = new Point(card.Bounds.Position.X, card.Bounds.Position.Y);
+            
         }
     }
 

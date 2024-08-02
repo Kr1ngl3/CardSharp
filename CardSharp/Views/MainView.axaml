@@ -10,22 +10,8 @@
     d:DesignWidth="800"
     x:DataType="vm:MainViewModel"
     mc:Ignorable="d">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="{CompiledBinding ScreenWidth, Converter={x:Static cv:FuncConverters.DoubleToGridLength}}" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="{CompiledBinding ScreenHeight, Converter={x:Static cv:FuncConverters.DoubleToGridLength}}" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
 
-        <ContentControl
-            Grid.Row="1"
-            Grid.Column="1"
-            Background="Red"
-            Content="{CompiledBinding CurrentViewModel}" />
-    </Grid>
+    <Viewbox>
+        <ContentControl Background="Red" Content="{CompiledBinding CurrentViewModel}" />
+    </Viewbox>
 </UserControl>

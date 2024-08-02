@@ -23,6 +23,6 @@
             <Button Command="{CompiledBinding HostGame}">Click to host</Button>
             <Button Command="{CompiledBinding JoinGame}">Click to join</Button>
         </StackPanel>
-        <TextBox Width="{CompiledBinding ScreenWidth, Converter={x:Static cv:FuncConverters.Mult}, ConverterParameter=.5}" Text="{CompiledBinding Ip}" />
+        <TextBox Text="{CompiledBinding Ip}" />
     </StackPanel>
 </UserControl>

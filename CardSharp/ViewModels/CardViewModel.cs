@@ -1,39 +1,15 @@
-﻿using Avalonia.Controls.Platform;
+﻿using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using CardSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CardSharp.Models;
-
-public enum Suits
-{
-    Heart,
-    Diamond,
-    Spade,
-    Club
-}
-
-public enum Ranks
-{
-    Ace,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Joker
-}
-
-public class Card
+namespace CardSharp.ViewModels;
+public class CardViewModel : ViewModelBase
 {
     private static Random s_random = new Random();
 
@@ -55,30 +31,31 @@ public class Card
         { Ranks.Joker, "Jo"},
     };
     private static string[] s_iconSources = {
-        @"/Assets/heart.png",
-        @"/Assets/diamond.png",
-        @"/Assets/spade.png",
-        @"/Assets/club.png"
+        @"avares://CardSharp/Assets/heart.png",
+        @"avares://CardSharp/Assets/diamond.png",
+        @"avares://CardSharp/Assets/spade.png",
+        @"avares://CardSharp/Assets/club.png"
     };
 
     private Ranks _rank;
     private Suits _suit;
 
     public Ranks Rank => _rank;
-    public string Suit => GetSuitSource(_suit);
+    public string RankString => SRanksToSymbol[_rank];
+    public Bitmap Suit => GetSuitSource(_suit);
+    public IImmutableSolidColorBrush Color => (int)_suit <= 1 ? Brushes.Red : Brushes.Black;
 
-    public Card() : this(s_random.Next(14))
-    {
-    }
-    public Card(int rank)
+    public CardViewModel() : this(s_random.Next(14))
+    {          
+    }          
+    public CardViewModel(int rank)
     {
         _suit = (Suits)s_random.Next(Enum.GetValues(typeof(Suits)).Length);
         _rank = (Ranks)rank;
     }
 
-    private string GetSuitSource(Suits suit)
+    private Bitmap GetSuitSource(Suits suit)
     {
-        return s_iconSources[(int)suit];
+        return new Bitmap(AssetLoader.Open(new Uri(s_iconSources[(int)suit])));
     }
-
 }

@@ -8,6 +8,14 @@
     <Application.DataTemplates>
         <c:ViewLocator />
     </Application.DataTemplates>
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <MergeResourceInclude Source="Styles/Card.axaml" />
+                <MergeResourceInclude Source="Styles/CardStack.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme>
             <FluentTheme.Palettes>

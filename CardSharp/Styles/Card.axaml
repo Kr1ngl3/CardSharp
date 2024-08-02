@@ -1,0 +1,72 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:CardSharp.Controls"
+    xmlns:cv="clr-namespace:CardSharp.Converters"
+    xmlns:vm="clr-namespace:CardSharp.ViewModels"
+    x:ClassModifier="internal">
+
+    <Design.PreviewWith>
+        <StackPanel Width="400" Spacing="10">
+            <StackPanel Background="{DynamicResource SystemRegionBrush}">
+                <c:Card>
+                    <c:Card.DataContext>
+                        <vm:CardViewModel />
+                    </c:Card.DataContext>
+                </c:Card>
+            </StackPanel>
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type c:Card}" TargetType="c:Card">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Width="200"
+                    Height="300"
+                    Padding="2"
+                    x:DataType="vm:CardViewModel"
+                    Background="White"
+                    BorderBrush="Black"
+                    BorderThickness="2">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel Width="15">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontWeight="Bold"
+                                Foreground="{CompiledBinding Color}"
+                                Text="{CompiledBinding RankString}" />
+                            <Image Source="{CompiledBinding Suit}" />
+                        </StackPanel>
+
+                        <!--<Image Width="160" Source="{CompiledBinding Suit}" />-->
+                        <ContentControl Width="160" >
+                            <ContentControl.Content>
+                                <MultiBinding Converter="{x:Static cv:FuncConverters.SGetCardArt}">
+                                    <Binding Path="Rank" />
+                                    <Binding Path="Suit" />
+                                </MultiBinding>
+                            </ContentControl.Content>
+                        </ContentControl>
+                        <StackPanel Width="15" VerticalAlignment="Bottom">
+                            <Image Source="{CompiledBinding Suit}">
+                                <Image.RenderTransform>
+                                    <RotateTransform Angle="180" />
+                                </Image.RenderTransform>
+                            </Image>
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontWeight="Bold"
+                                Foreground="{CompiledBinding Color}"
+                                Text="{CompiledBinding RankString}">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform Angle="180" />
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

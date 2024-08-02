@@ -29,4 +29,8 @@
       <DependentUpon>TitleScreenView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Controls\CardStack.axaml" />
+  </ItemGroup>
 </Project>
