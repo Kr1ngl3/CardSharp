@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
+using CardSharp.Models;
 using CardSharp.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -16,10 +17,11 @@ using System.Threading.Tasks;
 namespace CardSharp.Controls;
 public class Table : Canvas
 {
-    private Point _dragStart;
+    private Point _startPoint;
     private List<Point> _homePoint = new List<Point>();
     private bool _isDragging;
     private List<Card> _draggington = new List<Card>();
+    private bool _hasMoved;
 
     private List<CardStack> _cardStacks = new List<CardStack>();
 
@@ -49,6 +51,14 @@ public class Table : Canvas
         PointerPoint pointer = e.GetCurrentPoint(TopLevel.GetTopLevel(this));
         if (pointer.Properties.PointerUpdateKind == PointerUpdateKind.RightButtonReleased)
             return;
+        
+        
+        if (!_hasMoved)
+        {
+            ResetDrag();
+            return;
+        }
+        
         Point mousePos = pointer.Position;
         MoveCard(mousePos);
     }
@@ -58,10 +68,28 @@ public class Table : Canvas
         if (!_isDragging)
             return;
 
+        _hasMoved = true;
+
         Point mousePos = e.GetCurrentPoint(this).Position;
 
-        for (int i = 0; i < _draggington.Count; i++)
-            SetCanvasPosition(_draggington[i], _homePoint[i] + mousePos - _dragStart);
+        for (int dragIndex = 0; dragIndex < _draggington.Count; dragIndex++)
+        {
+            SetCanvasPosition(_draggington[dragIndex], _homePoint[dragIndex] + mousePos - _startPoint);
+            for (int stackIndex = 0; stackIndex < _cardStacks.Count; stackIndex++)
+            {
+                CardStack cardStack = _cardStacks[stackIndex];
+                if (cardStack.ContainsCard(_draggington[dragIndex]))
+                {
+                    cardStack.RemoveCard(_draggington[dragIndex]);
+                    if (cardStack.IsEmpty())
+                    {
+                        _cardStacks.Remove(cardStack);
+                        Children.Remove(cardStack);
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -76,21 +104,7 @@ public class Table : Canvas
             if (visual is not Card { DataContext: CardViewModel cvm} card) 
                 continue;
 
-            for (int i = 0; i < _cardStacks.Count; i++)
-            {
-                CardStack cardStack = _cardStacks[i];
-                if (cardStack.ContainsCard(card))
-                {
-                    cardStack.RemoveCard(card);
-                    if (cardStack.IsEmpty())
-                    {
-                        _cardStacks.Remove(cardStack);
-                        Children.Remove(cardStack);
-                    }
-                    break;
-                }
-            }
-            _dragStart = e.GetCurrentPoint(this).Position;
+            _startPoint = e.GetCurrentPoint(this).Position;
             _draggington.Add(card);
             _isDragging = true;
             _homePoint.Add(card.Bounds.TopLeft);
@@ -120,8 +134,9 @@ public class Table : Canvas
 
     private void ResetDrag()
     {
+        _hasMoved = false;
         _isDragging = false;
-        _dragStart = new Point();
+        _startPoint = new Point();
         _draggington = new List<Card>();
         _homePoint = new List<Point>();
     }
