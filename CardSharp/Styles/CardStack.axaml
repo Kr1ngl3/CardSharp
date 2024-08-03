@@ -11,5 +11,25 @@
             </StackPanel>
         </StackPanel>
     </Design.PreviewWith>
-    <ControlTheme x:Key="{x:Type c:CardStack}" TargetType="c:CardStack" />
+    <ControlTheme x:Key="{x:Type c:CardStack}" TargetType="c:CardStack">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Blue" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Height" Value="300" />
+        <Setter Property="Width" Value="200" />
+		<Setter Property="ContextMenu">
+			<ContextMenu>
+				<MenuItem Header="Copy" />
+				<MenuItem Header="Paste" />
+			</ContextMenu>
+		</Setter>
+        <Setter Property="Child">
+            <Template x:DataType="c:CardStack">
+                <TextBlock
+                    Foreground="Black"
+                    Text="{CompiledBinding CardCount}"
+                    ZIndex="1" />
+            </Template>
+        </Setter>
+    </ControlTheme>
 </ResourceDictionary>

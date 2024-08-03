@@ -1,7 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
+using Avalonia.Data.Core;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -16,6 +18,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CardSharp.Controls;
-public class Card : TemplatedControl
+public class Card : Border
 {
 }

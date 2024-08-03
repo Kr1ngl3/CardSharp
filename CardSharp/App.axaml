@@ -17,6 +17,7 @@
         </ResourceDictionary>
     </Application.Resources>
     <Application.Styles>
+        <StyleInclude Source="/Styles/MainStyle.axaml" />
         <FluentTheme>
             <FluentTheme.Palettes>
                 <ColorPaletteResources

@@ -11,8 +11,5 @@
     d:DesignWidth="1200"
     x:DataType="vm:GameViewModel"
     mc:Ignorable="d">
-    <c:Table
-        Width="1920"
-        Height="1080"
-        Background="Blue" />
+    <c:Table Width="1920" Height="1080" />
 </UserControl>

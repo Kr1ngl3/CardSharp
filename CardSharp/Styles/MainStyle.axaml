@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <StackPanel>
+                <Panel>
+                    <Border Background="red" ZIndex="0">
+                        <TextBlock Margin="100,0,0,0" ZIndex="1">Hello</TextBlock>
+                    </Border>
+                    <Rectangle Fill="Blue" ZIndex="0" />
+                </Panel>
+                <Button>Hello</Button>
+                <Button Classes="empty">Hello</Button>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="Button.empty">
+        <Setter Property="Theme">
+            <ControlTheme TargetType="Button">
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <ContentPresenter Content="{TemplateBinding Content}" />
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
+        </Setter>
+    </Style>
+</Styles>
