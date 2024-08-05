@@ -36,7 +36,7 @@ public class Table : Canvas
         if (DataContext is GameViewModel vm)
         {
             IEnumerable<CardViewModel> deck = vm.CreateDeck(4);
-            CardStack cardStack = new CardStack(deck);
+            CardStack cardStack = new CardStack();
             _cardStacks.Add(cardStack);
             Children.Add(cardStack);
             foreach (CardViewModel cardVM in deck)
@@ -45,6 +45,7 @@ public class Table : Canvas
                 _cardContainers.Add(cardVM, card);
             }
             cardStack.CardStackChanged += OnCardStackChanged;
+            cardStack.AddCards(deck);
         }
         base.OnAttachedToVisualTree(e);
     }
@@ -71,10 +72,7 @@ public class Table : Canvas
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        PointerPoint pointer = e.GetCurrentPoint(TopLevel.GetTopLevel(this));
-        if (pointer.Properties.PointerUpdateKind == PointerUpdateKind.RightButtonReleased)
-            return;
-        
+        Point mousePos = e.GetCurrentPoint(TopLevel.GetTopLevel(this)).Position;
         
         if (!_hasMoved)
         {
@@ -87,7 +85,6 @@ public class Table : Canvas
             return;
         }
         
-        Point mousePos = pointer.Position;
         if (_draggington[0] is CardStack)
             MoveCardStack(mousePos);
         else
@@ -198,13 +195,14 @@ public class Table : Canvas
         }
     }
 
+    // TO-DO change to match cards (maybe)
     private void SetCanvasPosition(AvaloniaObject? control, Point newPoint)
     {
         if (control is null) 
             return;
 
-        SetLeft(control, Math.Max(Math.Min(newPoint.X, Width - 200), 0));
-        SetTop(control, Math.Max(Math.Min(newPoint.Y, Height - 300), 0));
+        SetLeft(control, Math.Max(Math.Min(newPoint.X, Width - (double)Application.Current!.FindResource("CardWidth")!), 0));
+        SetTop(control, Math.Max(Math.Min(newPoint.Y, Height - (double)Application.Current!.FindResource("CardHeight")!), 0));
     }
 
     private Point GetCanvasPosition(AvaloniaObject? control)
@@ -309,11 +307,12 @@ public class Table : Canvas
         }
 
 
-        CardStack newCardStack = new CardStack(_draggington.Select(card => (CardViewModel)card.DataContext!));
+        CardStack newCardStack = new CardStack();
         _cardStacks.Add(newCardStack);
         Children.Add(newCardStack);
         newCardStack.CardStackChanged += OnCardStackChanged;
         SetCanvasPosition(newCardStack, GetCanvasPosition(_draggington[0]));
+        newCardStack.AddCards(_draggington.Select(card => (CardViewModel)card.DataContext!));
         ResetDrag();
     }
 }

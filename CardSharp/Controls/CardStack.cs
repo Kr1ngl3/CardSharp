@@ -60,7 +60,6 @@ public class CardStack : Border
      * oh! also make hand feature
      */
     private static Random s_random = new Random();
-    private static bool s_firstAdded;
     private static double s_cardWidth = (double)Application.Current!.FindResource("CardWidth")!;
     
     private AvaloniaList<CardViewModel> _cards = new AvaloniaList<CardViewModel>();
@@ -79,25 +78,7 @@ public class CardStack : Border
         : _cardStackType == CardStackTypes.Show5 ? 5
         : 0;
 
-    private event EventHandler<CardStackChangedEventArgs>? _cardStackChanged;
-    public event EventHandler<CardStackChangedEventArgs>? CardStackChanged
-    {
-        add
-        {
-            _cardStackChanged += value;
-            if (!s_firstAdded)
-            {
-                RaiseCardsChanged();
-                s_firstAdded = true;
-            }
-        }
-        remove
-        {
-            _cardStackChanged -= value;
-        }
-    }
-
-
+    public event EventHandler<CardStackChangedEventArgs>? CardStackChanged;
 
     /// <summary>
     /// Gets or sets CardCount value
@@ -109,11 +90,10 @@ public class CardStack : Border
     /// </summary>
     public double CardStackWidth => s_cardWidth + CardOffset * (CardsToShow - 1);
 
-    public CardStack(IEnumerable<CardViewModel> cards)
+    public CardStack()
     {
         _cards.CollectionChanged += (_, _) => CardCount = _cards.Count.ToString(); ;
         DataContext = this;
-        _cards.AddRange(cards);
     }
 
     public void AddCards(CardStack cardStack)
@@ -182,6 +162,9 @@ public class CardStack : Border
 
     private void RaiseCardsChanged(IEnumerable<CardViewModel>? cardsToNotShow = null)
     {
-        _cardStackChanged?.Invoke(this, new CardStackChangedEventArgs(GetCardsToShow(), cardsToNotShow, CardOffset));
+        if (CardStackChanged is null)
+            throw new Exception("Subscribe to event before modifying CardStack");
+
+        CardStackChanged.Invoke(this, new CardStackChangedEventArgs(GetCardsToShow(), cardsToNotShow, CardOffset));
     }
 }
