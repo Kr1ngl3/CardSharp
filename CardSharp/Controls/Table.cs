@@ -24,8 +24,11 @@ public class Table : Canvas
     private bool _isDragging;
     private List<Border> _draggington = new List<Border>();
     private bool _hasMoved;
+    private Card? _doubleClickedOn;
+    
+    private List<Card> _selectedCards = new List<Card>();
+    
     private Dictionary<CardViewModel, Card> _cardContainers = new Dictionary<CardViewModel, Card>();
-
     private List<CardStack> _cardStacks = new List<CardStack>();
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -46,14 +49,14 @@ public class Table : Canvas
         base.OnAttachedToVisualTree(e);
     }
 
-    private void OnCardStackChanged(CardStackChangedEventArgs e)
+    private void OnCardStackChanged(object? sender, CardStackChangedEventArgs e)
     {
         foreach (CardViewModel cardVM in e.CardsToNotShow ?? new List<CardViewModel>())
         {
             Card card = _cardContainers[cardVM];
             Children.Remove(card);
         }
-
+        int counter = 0;
         foreach (CardViewModel cardVM in e.CardsToShow)
         {
             Card card = _cardContainers[cardVM];
@@ -61,7 +64,8 @@ public class Table : Canvas
 
             Children.Remove(card);
             Children.Add(card);
-            SetCanvasPosition(card, GetCanvasPosition(cardStack));
+            SetCanvasPosition(card, GetCanvasPosition(cardStack) - new Point(-counter * e.CardOffset, 0));
+            counter++;
         }
     }
 
@@ -74,8 +78,11 @@ public class Table : Canvas
         
         if (!_hasMoved)
         {
-            if (_draggington[0] is CardStack)
-                (_draggington[1].DataContext as CardViewModel)!.IsSelected = true;
+            if (_doubleClickedOn is not null)
+            {
+                (_doubleClickedOn.DataContext as CardViewModel)!.IsSelected = true;
+                _selectedCards.Add(_doubleClickedOn);
+            }
             ResetDrag();
             return;
         }
@@ -134,6 +141,8 @@ public class Table : Canvas
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        bool doubleClickFlag = false;
+
         PointerPoint pointer = e.GetCurrentPoint(TopLevel.GetTopLevel(this));
         if (pointer.Properties.IsRightButtonPressed)
             return;
@@ -145,24 +154,47 @@ public class Table : Canvas
         {
             if (e.KeyModifiers == KeyModifiers.Control || e.ClickCount == 2)
             {
+                doubleClickFlag = true;
                 if (visual is CardStack cardStack)
                 {
                     _draggington.Add(cardStack);
                     _homePoint.Add(cardStack.Bounds.TopLeft);
+                    _startPoint = e.GetCurrentPoint(this).Position;
+                    _isDragging = true;
+                    foreach (CardViewModel cardViewModel in cardStack.GetCardsToShow().Reverse())
+                    {
+                        Card cardStackCard = _cardContainers[cardViewModel];
+                        _draggington.Add(cardStackCard);
+                        _homePoint.Add(cardStackCard.Bounds.TopLeft);
+                    }
                 }
             }
             if (visual is not Card { DataContext: CardViewModel cvm} card) 
                 continue;
 
+            if (doubleClickFlag)
+            {
+                _doubleClickedOn = card;
+                break;
+            }
+
+            if (_selectedCards.Contains(card))
+            {
+                _startPoint = e.GetCurrentPoint(this).Position;
+                _isDragging = true;
+                foreach (Card selectedCard in _selectedCards)
+                {
+                    _draggington.Add(selectedCard);
+                    _homePoint.Add(selectedCard.Bounds.TopLeft);
+                }
+                break;
+            }
+
             _startPoint = e.GetCurrentPoint(this).Position;
-            _draggington.Add(card);
             _isDragging = true;
+            _draggington.Add(card);
             _homePoint.Add(card.Bounds.TopLeft);
-
-            if (e.KeyModifiers == KeyModifiers.Control || e.ClickCount == 2)
-                continue;
-            break;          
-
+            break;
         }
     }
 
@@ -190,10 +222,20 @@ public class Table : Canvas
         _startPoint = new Point();
         _draggington = new List<Border>();
         _homePoint = new List<Point>();
+        _doubleClickedOn = null;
+    }
+
+    private void Deselect()
+    {
+        foreach (Card card in _selectedCards)
+            (card.DataContext as CardViewModel)!.IsSelected = false;
+        _selectedCards = new List<Card>();
+
     }
 
     private void MoveCardStack(Point point, bool canFail = true)
     {
+        Deselect();
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(point)
                 .OrderBy(x => x.ZIndex))
         {
@@ -205,8 +247,6 @@ public class Table : Canvas
                 _draggington.Remove(movingStack);
 
                 cardStack.AddCards(movingStack);
-                foreach (Card card in _draggington)
-                    SetCanvasPosition(card, GetCanvasPosition(cardStack));
 
                 ResetDrag();
                 return;
@@ -228,8 +268,8 @@ public class Table : Canvas
         }
         else
         {
-            foreach (Border item in _draggington)
-                SetCanvasPosition(item, _homePoint[0]);
+            for (int i = 0; i < _draggington.Count; i++)
+                SetCanvasPosition(_draggington[i], _homePoint[i]);
         }
 
         ResetDrag();
@@ -237,14 +277,13 @@ public class Table : Canvas
 
     private void MoveCard(Point point, bool canFail = true)
     {
+        Deselect();
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(point)
                         .OrderBy(x => x.ZIndex))
         {
             if (visual is CardStack cardStack)
             {
                 cardStack.AddCards(_draggington.Select(card => (CardViewModel)card.DataContext!));
-                foreach (Card card in _draggington)
-                    SetCanvasPosition(card, GetCanvasPosition(cardStack));
 
                 ResetDrag();
                 return;
@@ -265,8 +304,8 @@ public class Table : Canvas
         }
         else
         {
-            foreach (Card card in _draggington)
-                SetCanvasPosition(card, _homePoint[0]);
+            for (int i = 0; i < _draggington.Count; i++)
+                SetCanvasPosition(_draggington[i], _homePoint[i]);
         }
 
 

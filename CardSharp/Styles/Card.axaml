@@ -22,8 +22,8 @@
         x:Key="{x:Type c:Card}"
         x:DataType="vm:CardViewModel"
         TargetType="c:Card">
-        <Setter Property="Width" Value="200" />
-        <Setter Property="Height" Value="300" />
+        <Setter Property="Height" Value="{StaticResource CardHeight}" />
+        <Setter Property="Width" Value="{StaticResource CardWidth}" />
         <Setter Property="Padding" Value="2" />
         <Setter Property="BorderBrush" Value="Black" />
         <Setter Property="BorderThickness" Value="2" />
@@ -36,8 +36,8 @@
                         IsVisible="{CompiledBinding Flipped}"
                         Source="{StaticResource CardBack}"
                         Stretch="Fill" />
-                    <StackPanel IsVisible="{CompiledBinding !Flipped}" Orientation="Horizontal">
-                        <StackPanel Width="15">
+                    <Grid ColumnDefinitions="*,10*,*" IsVisible="{CompiledBinding !Flipped}">
+                        <StackPanel>
                             <TextBlock
                                 HorizontalAlignment="Center"
                                 FontWeight="Bold"
@@ -45,8 +45,7 @@
                                 Text="{CompiledBinding RankString}" />
                             <Image Source="{CompiledBinding Suit}" />
                         </StackPanel>
-
-                        <ContentControl Width="160">
+                        <ContentControl Grid.Column="1">
                             <ContentControl.Content>
                                 <MultiBinding Converter="{x:Static cv:Converters.SGetCardArt}">
                                     <Binding Path="Rank" />
@@ -55,7 +54,7 @@
                                 </MultiBinding>
                             </ContentControl.Content>
                         </ContentControl>
-                        <StackPanel Width="15" VerticalAlignment="Bottom">
+                        <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
                             <Image Source="{CompiledBinding Suit}">
                                 <Image.RenderTransform>
                                     <RotateTransform Angle="180" />
@@ -71,7 +70,7 @@
                                 </TextBlock.RenderTransform>
                             </TextBlock>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
                 </Panel>
             </Template>
         </Setter>

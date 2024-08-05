@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Platform;
 using Avalonia.Controls.Primitives;
 using CardSharp.ViewModels;
 using ReactiveUI;
@@ -14,6 +15,43 @@ namespace CardSharp.Controls;
 
 public class CardStack : Border
 {
+    public enum CardStackTypes
+    {
+        Default,
+        Show5,
+        Hand
+    }
+
+    public class CardStackChangedEventArgs : EventArgs
+    {
+        public IEnumerable<CardViewModel> CardsToShow;
+        public IEnumerable<CardViewModel>? CardsToNotShow;
+        public double CardOffset;
+
+        public CardStackChangedEventArgs(IEnumerable<CardViewModel> cardsToShow, IEnumerable<CardViewModel>? cardsToNotShow, double cardOffset)
+        {
+            CardsToShow = cardsToShow;
+            CardsToNotShow = cardsToNotShow;
+            CardOffset = cardOffset;
+        }
+    }
+
+    /// <summary>
+    /// Defines the CardCount property.
+    /// </summary>
+    public static readonly DirectProperty<CardStack, string> CardCountProperty =
+        AvaloniaProperty.RegisterDirect<CardStack, string>(
+            nameof(CardCount),
+            cardStack => cardStack.CardCount,
+            (cardStack, cardCount) => cardStack.CardCount = cardCount);
+
+    /// <summary>
+    /// Defines the CardCount property.
+    /// </summary>
+    public static readonly DirectProperty<CardStack, double> CardStackWidthProperty =
+        AvaloniaProperty.RegisterDirect<CardStack, double>(
+            nameof(CardStackWidth),
+            cardStack => cardStack.CardStackWidth);
     /* 
      * TO-DO
      * option to rotate
@@ -22,31 +60,35 @@ public class CardStack : Border
      * oh! also make hand feature
      */
     private static Random s_random = new Random();
+    private static bool s_firstAdded;
+    private static double s_cardWidth = (double)Application.Current!.FindResource("CardWidth")!;
+    
     private AvaloniaList<CardViewModel> _cards = new AvaloniaList<CardViewModel>();
-    private static bool _added;
+    private CardStackTypes _cardStackType;
+    private string _cardCount = "0";
 
-    public class CardStackChangedEventArgs : EventArgs
-    {
-        public IEnumerable<CardViewModel> CardsToShow;
-        public IEnumerable<CardViewModel>? CardsToNotShow;
 
-        public CardStackChangedEventArgs(IEnumerable<CardViewModel> cardsToShow, IEnumerable<CardViewModel>? cardsToNotShow)
-        {
-            CardsToShow = cardsToShow;
-            CardsToNotShow = cardsToNotShow;
-        }
-    }
+    private double CardOffset =>
+        _cardStackType == CardStackTypes.Default ? 0
+        : _cardStackType == CardStackTypes.Show5 ? s_cardWidth / 12
+        : 0;
 
-    private event Action<CardStackChangedEventArgs>? _cardStackChanged;
-    public event Action<CardStackChangedEventArgs>? CardStackChanged
+
+    private int CardsToShow =>
+        _cardStackType == CardStackTypes.Default ? 2
+        : _cardStackType == CardStackTypes.Show5 ? 5
+        : 0;
+
+    private event EventHandler<CardStackChangedEventArgs>? _cardStackChanged;
+    public event EventHandler<CardStackChangedEventArgs>? CardStackChanged
     {
         add
         {
             _cardStackChanged += value;
-            if (!_added)
+            if (!s_firstAdded)
             {
                 RaiseCardsChanged();
-                _added = true;
+                s_firstAdded = true;
             }
         }
         remove
@@ -55,30 +97,17 @@ public class CardStack : Border
         }
     }
 
-    /// <summary>
-    /// Defines the Curve property.
-    /// </summary>
-    public static readonly DirectProperty<CardStack, string> CardCountProperty =
-        AvaloniaProperty.RegisterDirect<CardStack, string>(
-            nameof(CardCount),
-            cs => cs.CardCount,
-            (cs, s) => cs.CardCount = s);
 
-
-    private string _cardCount = "0";
 
     /// <summary>
-    /// Gets or sets how muc heach card is rotated depending on index from middle
+    /// Gets or sets CardCount value
     /// </summary>
-    public string CardCount
-    {
-        get => _cardCount;
-        set => SetAndRaise(CardCountProperty, ref _cardCount, value);
-    }
+    public string CardCount { get => _cardCount; set => SetAndRaise(CardCountProperty, ref _cardCount, value); }
 
-    public CardStack(CardViewModel card) : this([card])
-    {
-    }
+    /// <summary>
+    /// Gets or sets CardCount value
+    /// </summary>
+    public double CardStackWidth => s_cardWidth + CardOffset * (CardsToShow - 1);
 
     public CardStack(IEnumerable<CardViewModel> cards)
     {
@@ -92,10 +121,12 @@ public class CardStack : Border
         AddCards(cardStack._cards);
     }
 
-    public void AddCards(IEnumerable<CardViewModel> card)
+    public void AddCards(IEnumerable<CardViewModel> cards)
     {
-        List<CardViewModel> prevTopCards = new List<CardViewModel>(_cards.Skip(Math.Max(0, _cards.Count() - 2)));
-        _cards.AddRange(card);
+        List<CardViewModel> prevTopCards = new List<CardViewModel>(GetCardsToShow());
+        prevTopCards.AddRange(cards);
+
+        _cards.AddRange(cards);
         RaiseCardsChanged(prevTopCards);
     }
 
@@ -115,12 +146,6 @@ public class CardStack : Border
         return _cards.Count == 0;
     }
 
-    public void SelectAll()
-    {
-        foreach (CardViewModel card in _cards)
-            card.IsSelected = true;
-    }
-
     public void Flip()
     {
         foreach (CardViewModel card in _cards)
@@ -129,7 +154,7 @@ public class CardStack : Border
 
     public void Shuffle()
     {
-        List<CardViewModel> prevTopCards = new List<CardViewModel>(_cards.Skip(Math.Max(0, _cards.Count() - 2)));
+        List<CardViewModel> prevTopCards = new List<CardViewModel>(GetCardsToShow());
         int n = _cards.Count;
         while (n > 1)
         {
@@ -142,8 +167,21 @@ public class CardStack : Border
         RaiseCardsChanged(prevTopCards);
     }
 
+    public void Show5Cards()
+    {
+        var temp = CardStackWidth;
+        _cardStackType = CardStackTypes.Show5;
+        RaisePropertyChanged(CardStackWidthProperty, temp, CardStackWidth);
+        RaiseCardsChanged(_cards);
+    }
+
+    public IEnumerable<CardViewModel> GetCardsToShow()
+    {
+        return new List<CardViewModel>(_cards.Skip(Math.Max(0, _cards.Count() - CardsToShow)));
+    }
+
     private void RaiseCardsChanged(IEnumerable<CardViewModel>? cardsToNotShow = null)
     {
-        _cardStackChanged?.Invoke(new CardStackChangedEventArgs(_cards.Skip(Math.Max(0, _cards.Count() - 2)), cardsToNotShow));
+        _cardStackChanged?.Invoke(this, new CardStackChangedEventArgs(GetCardsToShow(), cardsToNotShow, CardOffset));
     }
 }

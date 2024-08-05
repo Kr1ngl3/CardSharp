@@ -18,14 +18,14 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Blue" />
         <Setter Property="BorderThickness" Value="2" />
-        <Setter Property="Height" Value="300" />
-        <Setter Property="Width" Value="200" />
+        <Setter Property="Height" Value="{StaticResource CardHeight}" />
+        <Setter Property="Width" Value="{CompiledBinding CardStackWidth}" />
         <Setter Property="ZIndex" Value="1" />
         <Setter Property="ContextMenu">
             <ContextMenu>
-                <MenuItem Command="{CompiledBinding SelectAll}" Header="Select All" />
                 <MenuItem Command="{CompiledBinding Flip}" Header="Flip" />
                 <MenuItem Command="{CompiledBinding Shuffle}" Header="Shuffle" />
+                <MenuItem Command="{CompiledBinding Show5Cards}" Header="Show 5 cards" />
             </ContextMenu>
         </Setter>
         <Setter Property="Child">

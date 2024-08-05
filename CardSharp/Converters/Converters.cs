@@ -18,7 +18,15 @@ public static class Converters
 
     public class GetCardArt : IMultiValueConverter
     {
-        private double _iconSize = 50;
+        private Size _cardSize;
+        private double _iconHeight;
+
+        public GetCardArt()
+        {
+            _cardSize = new Size((double)Application.Current!.FindResource("CardWidth")!, (double)Application.Current!.FindResource("CardHeight")!);
+            _iconHeight = _cardSize.Height / 6;
+        }
+
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
             if (values[0] is not Ranks rank)
@@ -44,15 +52,15 @@ public static class Converters
 
             StackPanel[] columns = [
                 new StackPanel(){
-                        Margin = new Thickness(200 / 40, 0),
+                        Margin = new Thickness(_cardSize.Width / 40, 0),
                         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                     },
                     new StackPanel(){
-                        Margin = new Thickness(200 / 40, 0),
+                        Margin = new Thickness(_cardSize.Width / 40, 0),
                         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                     },
                     new StackPanel(){
-                        Margin = new Thickness(200 / 40, 0),
+                        Margin = new Thickness(_cardSize.Width / 40, 0),
                         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                     }];
 
@@ -69,8 +77,8 @@ public static class Converters
                     {
                         columns[1].Children.Add(new Image()
                         {
-                            Height = _iconSize,
-                            Margin = new Thickness(0, 200 / 10),
+                            Height = _iconHeight,
+                            Margin = new Thickness(0, _cardSize.Width / 10),
                             Source = source
                         });
 
@@ -84,16 +92,16 @@ public static class Converters
                         {
                             columns[1].Children.Add(new Image()
                             {
-                                Height = _iconSize,
-                                Margin = new Thickness(0, 200 / 10),
+                                Height = _iconHeight,
+                                Margin = new Thickness(0, _cardSize.Width / 10),
                                 Source = source
                             });
                             continue;
                         }
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
-                            Height = _iconSize,
-                            Margin = i < 2 ? new Thickness(0, 0, 0, 300 / 5) : new Thickness(0, 300 / 5, 0, 0),
+                            Height = _iconHeight,
+                            Margin = i < 2 ? new Thickness(0, 0, 0, _cardSize.Height / 5) : new Thickness(0, _cardSize.Height / 5, 0, 0),
                             Source = source
                         });
 
@@ -108,16 +116,16 @@ public static class Converters
                         {
                             columns[1].Children.Add(new Image()
                             {
-                                Height = _iconSize,
-                                Margin = new Thickness(0, 200 / 10),
+                                Height = _iconHeight,
+                                Margin = new Thickness(0, _cardSize.Width / 10),
                                 Source = source
                             });
                             continue;
                         }
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
-                            Height = _iconSize,
-                            Margin = new Thickness(0, 200 / 10),
+                            Height = _iconHeight,
+                            Margin = new Thickness(0, _cardSize.Width / 10),
                             Source = source
                         });
 
@@ -131,16 +139,16 @@ public static class Converters
                         {
                             columns[1].Children.Add(new Image()
                             {
-                                Height = _iconSize,
-                                Margin = new Thickness(0, 200 / 10),
+                                Height = _iconHeight,
+                                Margin = new Thickness(0, _cardSize.Width / 10),
                                 Source = source
                             });
                             continue;
                         }
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
-                            Height = _iconSize,
-                            Margin = new Thickness(0, 200 / 15),
+                            Height = _iconHeight,
+                            Margin = new Thickness(0, _cardSize.Width / 15),
                             Source = source
                         });
 
@@ -149,7 +157,7 @@ public static class Converters
                 default:
                     columns[1].Children.Add(new Image()
                     {
-                        Height = _iconSize,
+                        Height = _iconHeight,
                         Source = source
                     });
                     break;
