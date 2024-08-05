@@ -1,4 +1,5 @@
 ﻿using Avalonia.Collections;
+using Avalonia.Controls.Platform;
 using CardSharp.Models;
 using System;
 using System.Collections.Generic;
@@ -33,4 +34,22 @@ public class GameViewModel : ViewModelBase
         _topDeck.Clear();
         _topDeck.AddRange(_cardList.Skip(Math.Max(0, _cardList.Count() - 5)));
     }
+
+
+    public IEnumerable<CardViewModel> CreateDeck(int jokerCount)
+    {
+        if (jokerCount > 4 || jokerCount < 0)
+            throw new Exception($"Can't have {jokerCount} jokers");
+        List<CardViewModel> cards = new List<CardViewModel>();
+        for (int rank = 0; rank < 14; rank++)
+        {
+            for (int suit = rank == 13 ? 4 - jokerCount : 0; suit < 4; suit++)
+            {
+                cards.Add(new CardViewModel(rank, suit));
+            }
+        }
+        return cards;
+    }
+
+
 }

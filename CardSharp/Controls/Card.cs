@@ -10,6 +10,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Platform;
 using CardSharp.Models;
+using CardSharp.ViewModels;
 using DynamicData;
 using System;
 using System.Collections.Generic;
@@ -20,4 +21,8 @@ using System.Threading.Tasks;
 namespace CardSharp.Controls;
 public class Card : Border
 {
+    public Card(CardViewModel vm)
+    {
+        DataContext = vm;
+    }
 }

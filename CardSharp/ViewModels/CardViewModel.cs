@@ -1,7 +1,10 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CardSharp.Models;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,8 +15,6 @@ using System.Threading.Tasks;
 namespace CardSharp.ViewModels;
 public class CardViewModel : ViewModelBase
 {
-    private static Random s_random = new Random();
-
     public static Dictionary<Ranks, string> SRanksToSymbol = new Dictionary<Ranks, string>()
     {
         { Ranks.Ace, "A"},
@@ -29,34 +30,32 @@ public class CardViewModel : ViewModelBase
         { Ranks.Jack, "J"},
         { Ranks.Queen, "Q"},
         { Ranks.King, "K"},
-        { Ranks.Joker, "Jo"},
-    };
-    private static string[] s_iconSources = {
-        @"avares://CardSharp/Assets/heart.png",
-        @"avares://CardSharp/Assets/diamond.png",
-        @"avares://CardSharp/Assets/spade.png",
-        @"avares://CardSharp/Assets/club.png"
+        { Ranks.Joker, "J\nO\nK\nE\nR"},
     };
 
     private Ranks _rank;
     private Suits _suit;
+    private bool _isSelected;
+    private bool _flipped;
 
     public Ranks Rank => _rank;
     public string RankString => SRanksToSymbol[_rank];
-    public Bitmap Suit => GetSuitSource(_suit);
-    public IImmutableSolidColorBrush Color => (int)_suit <= 1 ? Brushes.Red : Brushes.Black;
-
-    public CardViewModel() : this(s_random.Next(14))
-    {          
-    }          
-    public CardViewModel(int rank)
+    public DrawingImage Suit => GetSuitSource(_suit);
+    public ISolidColorBrush Color => (int)_suit <= 1 ? Brushes.Red : Brushes.Black;
+    public ISolidColorBrush Background => _isSelected ? Brushes.SkyBlue : Brushes.White;
+    public bool IsSelected { get => _isSelected; set => this.RaiseAndSetIfChanged(ref _isSelected, value, nameof(Background)); }
+    public bool Flipped { get => _flipped; set => this.RaiseAndSetIfChanged(ref _flipped, value, nameof(Flipped)); }
+    
+    public CardViewModel(int rank, int suit)
     {
-        _suit = (Suits)s_random.Next(Enum.GetValues(typeof(Suits)).Length);
+        _suit = (Suits)suit;
         _rank = (Ranks)rank;
     }
 
-    private Bitmap GetSuitSource(Suits suit)
+    private DrawingImage GetSuitSource(Suits suit)
     {
-        return new Bitmap(AssetLoader.Open(new Uri(s_iconSources[(int)suit])));
+        if (_rank == Ranks.Joker)
+            return new DrawingImage();
+        return (DrawingImage)Application.Current!.FindResource(_suit.ToString())!;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Platform;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -7,20 +8,34 @@ using CardSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace CardSharp.Converters;
-public static class FuncConverters
+public static class Converters
 {
 
     public static GetCardArt SGetCardArt = new GetCardArt();
 
     public class GetCardArt : IMultiValueConverter
     {
+        private double _iconSize = 50;
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
             if (values[0] is not Ranks rank)
                 return null;
-            if (values[1] is not Bitmap source)
+            if (values[1] is not ISolidColorBrush brush)
+                return null;
+
+            if (rank == Ranks.Joker)
+            {
+                DrawingImage drawingImage = (DrawingImage)Application.Current!.FindResource($"{brush.ToString()}Joker")!;
+                return new Image()
+                {
+                    Source = drawingImage
+                };
+            }
+
+            if (values[2] is not DrawingImage source)
                 return null;
             Grid grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
@@ -47,85 +62,85 @@ public static class FuncConverters
 
             switch (rank)
             {
-                case Models.Ranks.Ace:
-                case Models.Ranks.Two:
-                case Models.Ranks.Three:
+                case Ranks.Ace:
+                case Ranks.Two:
+                case Ranks.Three:
                     for (int i = 0; i < (int)rank + 1; i++)
                     {
                         columns[1].Children.Add(new Image()
                         {
+                            Height = _iconSize,
                             Margin = new Thickness(0, 200 / 10),
-                            Stretch = Stretch.Uniform,
                             Source = source
                         });
 
                     }
                     break;
-                case Models.Ranks.Four:
-                case Models.Ranks.Five:
+                case Ranks.Four:
+                case Ranks.Five:
                     for (int i = 0; i < (int)rank + 1; i++)
                     {
                         if (i == 4)
                         {
                             columns[1].Children.Add(new Image()
                             {
+                                Height = _iconSize,
                                 Margin = new Thickness(0, 200 / 10),
-                                Stretch = Stretch.Uniform,
                                 Source = source
                             });
                             continue;
                         }
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
+                            Height = _iconSize,
                             Margin = i < 2 ? new Thickness(0, 0, 0, 300 / 5) : new Thickness(0, 300 / 5, 0, 0),
-                            Stretch = Stretch.Uniform,
                             Source = source
                         });
 
                     }
                     break;
-                case Models.Ranks.Six:
-                case Models.Ranks.Seven:
-                case Models.Ranks.Eight:
+                case Ranks.Six:
+                case Ranks.Seven:
+                case Ranks.Eight:
                     for (int i = 0; i < (int)rank + 1; i++)
                     {
                         if (i > 5)
                         {
                             columns[1].Children.Add(new Image()
                             {
+                                Height = _iconSize,
                                 Margin = new Thickness(0, 200 / 10),
-                                Stretch = Stretch.Uniform,
                                 Source = source
                             });
                             continue;
                         }
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
+                            Height = _iconSize,
                             Margin = new Thickness(0, 200 / 10),
-                            Stretch = Stretch.Uniform,
                             Source = source
                         });
 
                     }
                     break;
-                case Models.Ranks.Nine:
-                case Models.Ranks.Ten:
+                case Ranks.Nine:
+                case Ranks.Ten:
                     for (int i = 0; i < (int)rank + 1; i++)
                     {
                         if (i > 7)
                         {
                             columns[1].Children.Add(new Image()
                             {
+                                Height = _iconSize,
                                 Margin = new Thickness(0, 200 / 10),
-                                Stretch = Stretch.Uniform,
                                 Source = source
                             });
                             continue;
                         }
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
+                            Height = _iconSize,
                             Margin = new Thickness(0, 200 / 15),
-                            Stretch = Stretch.Uniform,
                             Source = source
                         });
 
@@ -134,12 +149,34 @@ public static class FuncConverters
                 default:
                     columns[1].Children.Add(new Image()
                     {
-                        Stretch = Stretch.Uniform,
+                        Height = _iconSize,
                         Source = source
                     });
                     break;
             }
             return grid;
+        }
+
+        private void SetBrush(DrawingImage image, ISolidColorBrush brush)
+        {
+            DrawingGroup drawGroup = (image.Drawing as DrawingGroup)!;
+            DrawingGroup? temp1 = (drawGroup.Children.FirstOrDefault() as DrawingGroup);
+            if (temp1 is null)
+            {
+                foreach (var temp in drawGroup.Children)
+                {
+                    if (temp is GeometryDrawing drawing)
+                        drawing.Brush = brush;
+                }
+            }
+            else
+            {
+                foreach (var temp in temp1.Children)
+                {
+                    if (temp is GeometryDrawing drawing)
+                        drawing.Brush = brush;
+                }
+            }
         }
     }
 }
