@@ -4,6 +4,7 @@ using Avalonia.Controls.Platform;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CardSharp.Models;
 using CardSharp.ViewModels;
@@ -13,6 +14,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static CardSharp.Controls.CardStack;
 
@@ -25,9 +27,9 @@ public class Table : Canvas
     private List<Border> _draggington = new List<Border>();
     private bool _hasMoved;
     private Card? _doubleClickedOn;
-    
+
     private List<Card> _selectedCards = new List<Card>();
-    
+
     private Dictionary<CardViewModel, Card> _cardContainers = new Dictionary<CardViewModel, Card>();
     private List<CardStack> _cardStacks = new List<CardStack>();
 
@@ -73,7 +75,7 @@ public class Table : Canvas
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         Point mousePos = e.GetCurrentPoint(TopLevel.GetTopLevel(this)).Position;
-        
+
         if (!_hasMoved)
         {
             if (_doubleClickedOn is not null)
@@ -84,11 +86,11 @@ public class Table : Canvas
             ResetDrag();
             return;
         }
-        
+
         if (_draggington[0] is CardStack)
             MoveCardStack(mousePos);
         else
-            MoveCard(mousePos);
+            MoveCards(mousePos);
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
@@ -166,7 +168,7 @@ public class Table : Canvas
                     }
                 }
             }
-            if (visual is not Card { DataContext: CardViewModel cvm} card) 
+            if (visual is not Card { DataContext: CardViewModel cvm } card)
                 continue;
 
             if (doubleClickFlag)
@@ -198,7 +200,7 @@ public class Table : Canvas
     // TO-DO change to match cards (maybe)
     private void SetCanvasPosition(AvaloniaObject? control, Point newPoint)
     {
-        if (control is null) 
+        if (control is null)
             return;
 
         SetLeft(control, Math.Max(Math.Min(newPoint.X, Width - (double)Application.Current!.FindResource("CardWidth")!), 0));
@@ -207,7 +209,7 @@ public class Table : Canvas
 
     private Point GetCanvasPosition(AvaloniaObject? control)
     {
-        if (control is null) 
+        if (control is null)
             return new Point();
 
         return new Point(GetLeft(control), GetTop(control));
@@ -273,47 +275,90 @@ public class Table : Canvas
         ResetDrag();
     }
 
-    private void MoveCard(Point point, bool canFail = true)
+    private void MoveCards(Point screenPoint, bool canFail = true)
     {
+
         Deselect();
-        foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(point)
-                        .OrderBy(x => x.ZIndex))
+        foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
+                       .OrderBy(x => x.ZIndex))
         {
             if (visual is CardStack cardStack)
             {
                 cardStack.AddCards(_draggington.Select(card => (CardViewModel)card.DataContext!));
-
                 ResetDrag();
                 return;
             }
         }
+
+        Card? movedCard = null;
+
+        if (_draggington.Count == 1)
+            movedCard = (Card)_draggington[0];
+        else
+        {
+            foreach (Border border in _draggington)
+            {
+                if (movedCard is not null)
+                    break;
+                movedCard = border.Bounds.Contains((Point)TopLevel.GetTopLevel(this)!.TranslatePoint(screenPoint, this)!) ? (Card)border : null;
+            }
+        }
+
+        if (movedCard is null)
+            throw new Exception("moved cards but didn't move any cards??");
 
 
         if (canFail)
         {
             foreach (CardStack cardStack in _cardStacks)
             {
-                if (cardStack.Bounds.Intersects(_draggington[0].Bounds))
+                if (cardStack.Bounds.Intersects(movedCard.Bounds))
                 {
-                    MoveCard((Point)this.TranslatePoint(_homePoint[0], TopLevel.GetTopLevel(this)!)!, false);
+                    for (int i = 0; i < _draggington.Count; i++)
+                        MoveCard(_homePoint[i], (Card)_draggington[i]);
+                    ResetDrag();
                     return;
                 }
             }
         }
-        else
-        {
-            for (int i = 0; i < _draggington.Count; i++)
-                SetCanvasPosition(_draggington[i], _homePoint[i]);
-        }
 
+        MoveCardsToNewStack(movedCard.Bounds.TopLeft, _draggington.FindAll(border => border is Card));
+
+
+
+        ResetDrag();
+    }
+
+    private void MoveCardsToNewStack(Point canvasPoint, IEnumerable<Border> cards)
+    {
+        CardStack newCardStack = new CardStack();
+        _cardStacks.Add(newCardStack);
+        Children.Add(newCardStack);
+        newCardStack.CardStackChanged += OnCardStackChanged;
+        SetCanvasPosition(newCardStack, canvasPoint);
+        newCardStack.AddCards(_draggington.Select(card => (CardViewModel)card.DataContext!));
+    }
+
+    private void MoveCard(Point canvasPoint, Card card)
+    {
+        Point screenPoint = (Point)this.TranslatePoint(canvasPoint, TopLevel.GetTopLevel(this)!)!;
+
+        foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
+                        .OrderBy(x => x.ZIndex))
+        {
+            if (visual is CardStack cardStack)
+            {
+                cardStack.AddCards([(CardViewModel)card.DataContext!]);
+                return;
+            }
+        }
 
         CardStack newCardStack = new CardStack();
         _cardStacks.Add(newCardStack);
         Children.Add(newCardStack);
         newCardStack.CardStackChanged += OnCardStackChanged;
-        SetCanvasPosition(newCardStack, GetCanvasPosition(_draggington[0]));
-        newCardStack.AddCards(_draggington.Select(card => (CardViewModel)card.DataContext!));
-        ResetDrag();
+        SetCanvasPosition(newCardStack, canvasPoint);
+        newCardStack.AddCards([(CardViewModel)card.DataContext!]);
     }
 }
 

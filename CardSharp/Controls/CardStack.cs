@@ -3,11 +3,13 @@ using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Platform;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using CardSharp.ViewModels;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -69,7 +71,7 @@ public class CardStack : Border
 
     private double CardOffset =>
         _cardStackType == CardStackTypes.Default ? 0
-        : _cardStackType == CardStackTypes.Show5 ? s_cardWidth / 12
+        : _cardStackType == CardStackTypes.Show5 ? (s_cardWidth * 5 / 12 / Math.Max(1, Math.Min(5, _cards.Count) - 1))
         : 0;
 
 
@@ -88,7 +90,7 @@ public class CardStack : Border
     /// <summary>
     /// Gets or sets CardCount value
     /// </summary>
-    public double CardStackWidth => s_cardWidth + CardOffset * (CardsToShow - 1);
+    public double CardStackWidth => s_cardWidth + CardOffset * Math.Max(1, Math.Min(5, _cards.Count) - 1);
 
     public CardStack()
     {
