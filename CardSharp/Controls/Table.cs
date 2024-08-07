@@ -257,15 +257,35 @@ public class Table : Canvas
 
     private void MoveCardStack(Point screenPoint, List<Border> movedStack, List<Point> homePoints)
     {
+        Card? cardHover = null;
+
         CardStack cardStack = (CardStack)movedStack[0];
+        movedStack.Reverse();
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
                 .OrderBy(x => x.ZIndex))
         {
+            if (visual is Card card && cardHover is null)
+            {
+                bool cardCheck = true;
+                foreach (Border dragged in movedStack)
+                    if (card.Equals(dragged))
+                        cardCheck = false;
+
+                if (cardCheck)
+                    cardHover = card;
+            }
+            if (visual is Hand hand && cardHover is not null)
+            {
+                Children.Remove(cardStack);
+                _cardStacks.Remove(cardStack);
+
+                hand.AddCardsAt((CardViewModel)cardHover!.DataContext!, movedStack.FindAll(border => border is Card).Select(card => (CardViewModel)card.DataContext!));
+                return;
+            }
             if (visual is CardStackBase otherCardStack && !otherCardStack.Equals(cardStack))
             {
                 Children.Remove(cardStack);
                 _cardStacks.Remove(cardStack);
-                _draggington.Remove(cardStack);
 
                 otherCardStack.AddCards(cardStack);
                 return;
@@ -292,9 +312,27 @@ public class Table : Canvas
 
     private void MoveCards(Point screenPoint, List<Card> cards, List<Point> homepoints, bool canFail = true)
     {
+        Card? cardHover = null;
+
+
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
                        .OrderBy(x => x.ZIndex))
         {
+            if (visual is Card card && cardHover is null)
+            {
+                bool cardCheck = true;
+                foreach (Card dragged in cards)
+                    if (card.Equals(dragged))
+                        cardCheck = false;
+
+                if (cardCheck)
+                    cardHover = card;
+            }
+            if (visual is Hand hand && cardHover is not null)
+            {
+                hand.AddCardsAt((CardViewModel)cardHover!.DataContext!, cards.Select(card => (CardViewModel)card.DataContext!));
+                return;
+            }
             if (visual is CardStackBase cardStack)
             {
                 cardStack.AddCards(cards.Select(card => (CardViewModel)card.DataContext!));
@@ -302,21 +340,20 @@ public class Table : Canvas
             }
         }
 
-        Card? movedCard = null;
-
+        Card? draggedCard = null;
         if (cards.Count == 1)
-            movedCard = cards[0];
+            draggedCard = cards[0];
         else
         {
             foreach (Card card in cards)
             {
-                if (movedCard is not null)
+                if (draggedCard is not null)
                     break;
-                movedCard = card.Bounds.Contains((Point)TopLevel.GetTopLevel(this)!.TranslatePoint(screenPoint, this)!) ? card : null;
+                draggedCard = card.Bounds.Contains((Point)TopLevel.GetTopLevel(this)!.TranslatePoint(screenPoint, this)!) ? card : null;
             }
         }
 
-        if (movedCard is null)
+        if (draggedCard is null)
             throw new Exception("moved cards but didn't move any cards??");
 
 
@@ -324,7 +361,7 @@ public class Table : Canvas
         {
             foreach (CardStackBase cardStack in _cardStacks)
             {
-                if (cardStack.Bounds.Intersects(movedCard.Bounds))
+                if (cardStack.Bounds.Intersects(draggedCard.Bounds))
                 {
                     for (int i = 0; i < cards.Count; i++)
                         MoveCard(homepoints[i], cards[i]);
@@ -333,7 +370,7 @@ public class Table : Canvas
             }
         }
 
-        MoveCardsToNewStack(movedCard.Bounds.TopLeft, cards);
+        MoveCardsToNewStack(draggedCard.Bounds.TopLeft, cards);
     }
 
     private void MoveCardsToNewStack(Point canvasPoint, IEnumerable<Card> cards)

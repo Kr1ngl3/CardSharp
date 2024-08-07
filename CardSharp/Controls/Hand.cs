@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CardSharp.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,5 +27,11 @@ public class Hand : CardStackBase
     {
         _handType = handType;
         _handWidth = handWidth;
+    }
+
+    public void AddCardsAt(CardViewModel card, IEnumerable<CardViewModel> cards)
+    {
+        _cards.InsertRange(_cards.IndexOf(card) + 1, cards);
+        RaiseCardsChanged(_cards);
     }
 }
