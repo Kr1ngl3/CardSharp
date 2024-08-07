@@ -1,4 +1,5 @@
-﻿using Avalonia.Collections;
+﻿using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls.Platform;
 using CardSharp.Models;
 using System;
@@ -15,6 +16,12 @@ public class GameViewModel : ViewModelBase
     
     private AvaloniaList<Card> _cardList = new AvaloniaList<Card>();
     private AvaloniaList<Card> _topDeck = new AvaloniaList<Card>();
+
+    public event Action<(byte, Point)>? CardMoved;
+    public void Move()
+    {
+        CardMoved?.Invoke((48 + 13, new Point(500, 500)));
+    }
 
     public IEnumerable<Card> CardList => _cardList;
 

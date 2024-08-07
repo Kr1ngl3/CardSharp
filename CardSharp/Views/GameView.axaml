@@ -11,5 +11,7 @@
     d:DesignWidth="1200"
     x:DataType="vm:GameViewModel"
     mc:Ignorable="d">
-    <c:Table Width="1920" Height="1020" />
+	<c:Table Width="1920" Height="1020" >
+        <Button Command="{CompiledBinding Move}">Click</Button>
+	</c:Table>
 </UserControl>

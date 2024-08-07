@@ -45,11 +45,22 @@ public class CardViewModel : ViewModelBase
     public ISolidColorBrush Background => _isSelected ? Brushes.SkyBlue : Brushes.White;
     public bool IsSelected { get => _isSelected; set => this.RaiseAndSetIfChanged(ref _isSelected, value, nameof(Background)); }
     public bool Flipped { get => _flipped; set => this.RaiseAndSetIfChanged(ref _flipped, value, nameof(Flipped)); }
+    public byte Hash => (byte)((15 & (int)_suit) << 4 | (15 & (int)_rank));
     
     public CardViewModel(int rank, int suit)
     {
         _suit = (Suits)suit;
         _rank = (Ranks)rank;
+    }
+
+    public Suits GetSuitFromHash()
+    {
+        return (Suits)((Hash >> 4) & 15);
+    }
+
+    public Ranks GetRankFromHash()
+    {
+        return (Ranks)(Hash & 15);
     }
 
     private DrawingImage GetSuitSource(Suits suit)

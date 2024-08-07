@@ -21,6 +21,9 @@ using System.Threading.Tasks;
 namespace CardSharp.Controls;
 public class Card : Border
 {
+
+    public CardViewModel ViewModel => (CardViewModel)DataContext!;
+
     public Card(CardViewModel vm)
     {
         DataContext = vm;

@@ -31,7 +31,7 @@ public abstract class CardStackBase : Border
     protected abstract int CardsToShow { get; }
     protected abstract double CardOffset { get; }
 
-    public event EventHandler<CardStackChangedEventArgs>? CardStackChanged;
+    public event Action<CardStackChangedEventArgs>? CardStackChanged;
 
     protected CardStackBase()
     {
@@ -55,6 +55,17 @@ public abstract class CardStackBase : Border
 
         _cards.AddRange(cards);
         RaiseCardsChanged(prevTopCards);
+    }
+
+    public void AddCardsAt(CardViewModel card, CardStackBase cardStack)
+    {
+        AddCardsAt(card, cardStack._cards);
+    }
+
+    public void AddCardsAt(CardViewModel card, IEnumerable<CardViewModel> cards)
+    {
+        _cards.InsertRange(_cards.IndexOf(card) + 1, cards);
+        RaiseCardsChanged(_cards);
     }
 
     public void RemoveCard(CardViewModel card)
@@ -88,6 +99,6 @@ public abstract class CardStackBase : Border
         if (CardStackChanged is null)
             throw new Exception("Subscribe to event before modifying CardStack");
 
-        CardStackChanged.Invoke(this, new CardStackChangedEventArgs(GetCardsToShow(), cardsToNotShow, CardOffset));
+        CardStackChanged.Invoke(new CardStackChangedEventArgs(GetCardsToShow(), cardsToNotShow, CardOffset));
     }
 }
