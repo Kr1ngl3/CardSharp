@@ -17,22 +17,25 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static CardSharp.Controls.CardStack;
 
 namespace CardSharp.Controls;
 public class Table : Canvas
 {
+    // used when dragging cards
     private Point _startPoint;
     private List<Point> _homePoint = new List<Point>();
-    private bool _isDragging;
     private List<Border> _draggington = new List<Border>();
-    private bool _hasMoved;
     private Card? _doubleClickedOn;
+    private bool _isDragging;
+    private bool _hasMoved;
 
+    // used when selecting cards
     private List<Card> _selectedCards = new List<Card>();
 
+    // used all throughout
     private Dictionary<CardViewModel, Card> _cardContainers = new Dictionary<CardViewModel, Card>();
-    private List<CardStack> _cardStacks = new List<CardStack>();
+    private List<CardStackBase> _cardStacks = new List<CardStackBase>();
+    private Hand _mainHand = null!;
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -49,11 +52,17 @@ public class Table : Canvas
             }
             cardStack.CardStackChanged += OnCardStackChanged;
             cardStack.AddCards(deck);
+
+            _mainHand = new Hand(Hand.HandTypes.MainHand, (double)Application.Current!.FindResource("CardWidth")! * 10);
+            _cardStacks.Add(_mainHand);
+            Children.Add(_mainHand);
+            SetCanvasPosition(_mainHand, new Point((Width - (double)Application.Current!.FindResource("CardWidth")! * 10 )/ 2, Height));
+            _mainHand.CardStackChanged += OnCardStackChanged;
         }
         base.OnAttachedToVisualTree(e);
     }
 
-    private void OnCardStackChanged(object? sender, CardStackChangedEventArgs e)
+    private void OnCardStackChanged(object? sender, CardStackBase.CardStackChangedEventArgs e)
     {
         foreach (CardViewModel cardVM in e.CardsToNotShow ?? new List<CardViewModel>())
         {
@@ -64,7 +73,7 @@ public class Table : Canvas
         foreach (CardViewModel cardVM in e.CardsToShow)
         {
             Card card = _cardContainers[cardVM];
-            CardStack cardStack = _cardStacks.Find(stack => stack.ContainsCard(cardVM))!;
+            CardStackBase cardStack = _cardStacks.Find(stack => stack.ContainsCard(cardVM))!;
 
             Children.Remove(card);
             Children.Add(card);
@@ -120,11 +129,12 @@ public class Table : Canvas
             {
                 for (int stackIndex = 0; stackIndex < _cardStacks.Count; stackIndex++)
                 {
-                    CardStack cardStack = _cardStacks[stackIndex];
+                    CardStackBase cardStack = _cardStacks[stackIndex];
                     if (cardStack.ContainsCard((CardViewModel)_draggington[dragIndex].DataContext!))
                     {
                         cardStack.RemoveCard((CardViewModel)_draggington[dragIndex].DataContext!);
-                        if (cardStack.IsEmpty())
+
+                        if ((cardStack as CardStack)?.IsEmpty() ?? false)
                         {
                             cardStack.CardStackChanged -= OnCardStackChanged;
                             _cardStacks.Remove(cardStack);
@@ -210,7 +220,7 @@ public class Table : Canvas
         }
     }
 
-    // TO-DO change to match cards (maybe)
+    // TO-DO change to clip to cardstack size
     private void SetCanvasPosition(AvaloniaObject? control, Point newPoint)
     {
         if (control is null)
@@ -243,16 +253,15 @@ public class Table : Canvas
         foreach (Card card in _selectedCards)
             (card.DataContext as CardViewModel)!.IsSelected = false;
         _selectedCards = new List<Card>();
-
     }
 
-    private void MoveCardStack(Point screenPoint, List<Border> movedStack, List<Point> homePoints, bool canFail = true)
+    private void MoveCardStack(Point screenPoint, List<Border> movedStack, List<Point> homePoints)
     {
         CardStack cardStack = (CardStack)movedStack[0];
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
                 .OrderBy(x => x.ZIndex))
         {
-            if (visual is CardStack otherCardStack && !otherCardStack.Equals(cardStack))
+            if (visual is CardStackBase otherCardStack && !otherCardStack.Equals(cardStack))
             {
                 Children.Remove(cardStack);
                 _cardStacks.Remove(cardStack);
@@ -263,24 +272,22 @@ public class Table : Canvas
             }
         }
 
-        if (canFail)
+        foreach (CardStackBase otherCardStack in _cardStacks)
         {
-            foreach (CardStack otherCardStack in _cardStacks)
+            if (otherCardStack.Equals(cardStack))
+                continue;
+            if (otherCardStack.Bounds.Intersects(cardStack.Bounds))
             {
-                if (otherCardStack.Equals(cardStack))
-                    continue;
-                if (otherCardStack.Bounds.Intersects(cardStack.Bounds))
-                {
-                    MoveCardStack((Point)this.TranslatePoint(homePoints.First(), TopLevel.GetTopLevel(this)!)!, movedStack, homePoints, false);
-                    return;
-                }
+                MoveCardStackBack(movedStack, homePoints);
+                return;
             }
         }
-        else
-        {
-            for (int i = 0; i < movedStack.Count; i++)
-                SetCanvasPosition(movedStack[i], homePoints[i]);
-        }
+    }
+
+    private void MoveCardStackBack(List<Border> movedStack, List<Point> homePoints)
+    {
+        for (int i = 0; i < movedStack.Count; i++)
+            SetCanvasPosition(movedStack[i], homePoints[i]);
     }
 
     private void MoveCards(Point screenPoint, List<Card> cards, List<Point> homepoints, bool canFail = true)
@@ -288,7 +295,7 @@ public class Table : Canvas
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
                        .OrderBy(x => x.ZIndex))
         {
-            if (visual is CardStack cardStack)
+            if (visual is CardStackBase cardStack)
             {
                 cardStack.AddCards(cards.Select(card => (CardViewModel)card.DataContext!));
                 return;
@@ -315,7 +322,7 @@ public class Table : Canvas
 
         if (canFail)
         {
-            foreach (CardStack cardStack in _cardStacks)
+            foreach (CardStackBase cardStack in _cardStacks)
             {
                 if (cardStack.Bounds.Intersects(movedCard.Bounds))
                 {
@@ -342,11 +349,12 @@ public class Table : Canvas
     private void MoveCard(Point canvasPoint, Card card)
     {
         Point screenPoint = (Point)this.TranslatePoint(canvasPoint, TopLevel.GetTopLevel(this)!)!;
+        screenPoint = new Point(Math.Ceiling(screenPoint.X), Math.Ceiling(screenPoint.Y));
 
         foreach (Visual? visual in TopLevel.GetTopLevel(this)!.GetVisualsAt(screenPoint)
                         .OrderBy(x => x.ZIndex))
         {
-            if (visual is CardStack cardStack)
+            if (visual is CardStackBase cardStack)
             {
                 cardStack.AddCards([(CardViewModel)card.DataContext!]);
                 return;

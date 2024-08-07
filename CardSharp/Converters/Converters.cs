@@ -24,7 +24,7 @@ public static class Converters
         public GetCardArt()
         {
             _cardSize = new Size((double)Application.Current!.FindResource("CardWidth")!, (double)Application.Current!.FindResource("CardHeight")!);
-            _iconHeight = _cardSize.Height / 6;
+            _iconHeight = _cardSize.Height / 6.5;
         }
 
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)

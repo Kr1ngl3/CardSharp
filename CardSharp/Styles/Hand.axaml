@@ -7,30 +7,26 @@
     <Design.PreviewWith>
         <StackPanel Width="400" Spacing="10">
             <StackPanel Background="{DynamicResource SystemRegionBrush}">
-                <c:CardStack />
+                <c:Hand />
             </StackPanel>
         </StackPanel>
     </Design.PreviewWith>
     <ControlTheme
-        x:Key="{x:Type c:CardStack}"
-        x:DataType="c:CardStack"
-        TargetType="c:CardStack">
+        x:Key="{x:Type c:Hand}"
+        x:DataType="c:Hand"
+        TargetType="c:Hand">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="Blue" />
+        <Setter Property="BorderBrush" Value="Green" />
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="Height" Value="{StaticResource CardHeight}" />
-        <Setter Property="Width" Value="{CompiledBinding CardStackWidth}" />
+        <Setter Property="Width" Value="{CompiledBinding HandWidth}" />
         <Setter Property="ZIndex" Value="1" />
         <Setter Property="ContextMenu">
-            <ContextMenu>
-                <MenuItem Command="{CompiledBinding Flip}" Header="Flip" />
-                <MenuItem Command="{CompiledBinding Shuffle}" Header="Shuffle" />
-                <MenuItem Command="{CompiledBinding SetAsShow5Cards}" Header="Show 5 cards" />
-            </ContextMenu>
+            <ContextMenu />
         </Setter>
         <Setter Property="Child">
             <Template>
-                <TextBlock Foreground="Black" Text="{CompiledBinding CardCount}" />
+                <TextBlock Foreground="Black" Text="Hand" />
             </Template>
         </Setter>
     </ControlTheme>

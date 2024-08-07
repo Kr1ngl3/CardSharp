@@ -40,6 +40,7 @@
                         <StackPanel>
                             <TextBlock
                                 HorizontalAlignment="Center"
+                                FontSize="10"
                                 FontWeight="Bold"
                                 Foreground="{CompiledBinding Color}"
                                 Text="{CompiledBinding RankString}" />
@@ -62,6 +63,7 @@
                             </Image>
                             <TextBlock
                                 HorizontalAlignment="Center"
+                                FontSize="10"
                                 FontWeight="Bold"
                                 Foreground="{CompiledBinding Color}"
                                 Text="{CompiledBinding RankString}">

@@ -10,10 +10,11 @@
     </Application.DataTemplates>
     <Application.Resources>
         <ResourceDictionary>
-            <x:Double x:Key="CardWidth">200</x:Double>
-            <x:Double x:Key="CardHeight">300</x:Double>
+            <x:Double x:Key="CardWidth">136</x:Double>
+            <x:Double x:Key="CardHeight">204</x:Double>
             <ResourceDictionary.MergedDictionaries>
                 <MergeResourceInclude Source="Styles/Card.axaml" />
+                <MergeResourceInclude Source="Styles/Hand.axaml" />
                 <MergeResourceInclude Source="Styles/CardStack.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
