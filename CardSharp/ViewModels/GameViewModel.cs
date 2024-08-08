@@ -17,10 +17,10 @@ public class GameViewModel : ViewModelBase
     private AvaloniaList<Card> _cardList = new AvaloniaList<Card>();
     private AvaloniaList<Card> _topDeck = new AvaloniaList<Card>();
 
-    public event Action<(byte, Point)>? CardMoved;
+    public event Action<(byte[], Point, bool)>? CardMoved;
     public void Move()
     {
-        CardMoved?.Invoke((48 + 13, new Point(500, 500)));
+        CardMoved?.Invoke(([16 + 13, 48 + 13], new Point(500, 500), false));
     }
 
     public IEnumerable<Card> CardList => _cardList;

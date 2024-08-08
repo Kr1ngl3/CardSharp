@@ -1,23 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Platform;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Layout;
-using Avalonia.Metadata;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
-using CardSharp.Models;
 using CardSharp.ViewModels;
 using DynamicData;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +15,7 @@ public class Table : Canvas
 {
     // used when dragging cards
     private Point _startPoint;
-    private List<Point> _homePoint = new List<Point>();
+    private List<Point> _homePoints = new List<Point>();
     private List<Border> _draggington = new List<Border>();
     private Card? _doubleClickedOn;
     private bool _isDragging;
@@ -69,14 +58,41 @@ public class Table : Canvas
         base.OnAttachedToVisualTree(e);
     }
 
-    private void Vm_CardMoved((byte hash, Point point) data)
+    private async void Vm_CardMoved((byte[] hashes, Point point, bool isCardStack) data)
     {
-        Card card = _cardHashTable[data.hash];
-        SetCanvasPosition(card, data.point);
-        CardStackBase cardStack = _cardStacks.Find(stack => stack.ContainsCard(card.ViewModel))!;
-        cardStack.RemoveCard(card.ViewModel);
+        List<Card> cards = new List<Card>(data.hashes.Select(hash => _cardHashTable[hash]));
 
-        MoveCards(data.point, [card], [card.Bounds.TopLeft], false);
+        // cancel current drag if one of the dragging cards is moved from server
+        foreach (Card card in cards)
+        {
+            if (_draggington.Contains(card))
+                CancelDragging();
+            if (_selectedCards.Contains(card))
+                Deselect();
+            card.Classes.Add("fromServer");
+        }
+
+        if (data.isCardStack)
+        {
+            List<Border> items = [_cardStacks.Find(stack => stack.ContainsCard(cards[0].ViewModel))!];
+            items.AddRange(cards);
+            foreach (Border item in items)
+                SetCanvasPosition(item, data.point);
+            await Task.Delay(350);
+            MoveCardStack(data.point, items);
+        }
+        else
+        {
+            foreach (Card card in cards)
+            {
+                SetCanvasPosition(card, data.point);
+                RemoveCardFromCardStack(card);
+            }
+            await Task.Delay(350);
+            MoveCards(data.point, cards);
+        }
+        foreach (Card card in cards)
+            card.Classes.Remove("fromServer");
     }
 
     private void OnCardStackChanged(CardStackBase.CardStackChangedEventArgs e)
@@ -99,6 +115,12 @@ public class Table : Canvas
         }
     }
 
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        CancelDragging();
+        base.OnPointerCaptureLost(e);
+    }
+
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         Point mousePos = e.GetPosition(this);
@@ -118,7 +140,7 @@ public class Table : Canvas
         if (_draggington[0] is CardStack)
         {
             List<Border> newList = _draggington.ConvertAll(border => border);
-            List<Point> newHomePoints = _homePoint.ConvertAll(point => point);
+            List<Point> newHomePoints = _homePoints.ConvertAll(point => point);
             ResetDrag();
             Deselect();
             MoveCardStack(mousePos, newList, newHomePoints, true);
@@ -126,7 +148,7 @@ public class Table : Canvas
         else
         {
             List<Card> newList = _draggington.ConvertAll(card => (Card)card);
-            List<Point> newHomePoints = _homePoint.ConvertAll(point => point);
+            List<Point> newHomePoints = _homePoints.ConvertAll(point => point);
             ResetDrag();
             Deselect();
             MoveCards(mousePos, newList, newHomePoints, true);
@@ -140,26 +162,11 @@ public class Table : Canvas
 
         for (int dragIndex = 0; dragIndex < _draggington.Count; dragIndex++)
         {
-            SetCanvasPosition(_draggington[dragIndex], _homePoint[dragIndex] + e.GetPosition(this) - _startPoint);
+            SetCanvasPosition(_draggington[dragIndex], _homePoints[dragIndex] + e.GetPosition(this) - _startPoint);
             if (_draggington[0] is CardStack)
                 continue;
 
-            for (int stackIndex = 0; stackIndex < _cardStacks.Count; stackIndex++)
-            {
-                CardStackBase cardStack = _cardStacks[stackIndex];
-                if (cardStack.ContainsCard((CardViewModel)_draggington[dragIndex].DataContext!))
-                {
-                    cardStack.RemoveCard((CardViewModel)_draggington[dragIndex].DataContext!);
-
-                    if ((cardStack as CardStack)?.IsEmpty() ?? false)
-                    {
-                        cardStack.CardStackChanged -= OnCardStackChanged;
-                        _cardStacks.Remove(cardStack);
-                        Children.Remove(cardStack);
-                    }
-                    break;
-                }
-            }
+            RemoveCardFromCardStack((Card)_draggington[dragIndex]);
         }
 
         // only run one time when cards are being moved
@@ -220,7 +227,7 @@ public class Table : Canvas
             foreach (Border item in items)
             {
                 _draggington.Add(item);
-                _homePoint.Add(GetCanvasPosition(item));
+                _homePoints.Add(GetCanvasPosition(item));
             }
         }
     }
@@ -243,13 +250,47 @@ public class Table : Canvas
         return new Point(GetLeft(control), GetTop(control));
     }
 
+    private void RemoveCardFromCardStack(Card card)
+    {
+        CardStackBase? cardStackBase = _cardStacks.Find(stack => stack.ContainsCard(card.ViewModel));
+
+        if (cardStackBase is null)
+            return;
+
+        cardStackBase.RemoveCard(card.ViewModel);
+
+        // can only be true if cardstackbase is an empty cardstack, since hand has no IsEmpty method
+        if (cardStackBase is not CardStack cardStack)
+            return;
+
+        if (cardStack.IsEmpty())
+        {
+            cardStack.CardStackChanged -= OnCardStackChanged;
+            _cardStacks.Remove(cardStack);
+            Children.Remove(cardStack);
+        }
+    }
+
+    void CancelDragging()
+    {
+        if (!_isDragging)
+            return;
+        if (_draggington[0] is CardStack)
+            MoveCardStackBack(_draggington, _homePoints);
+        else
+            for (int i = 0; i < _draggington.Count; i++)
+                MoveCardBack(_homePoints[i], (Card)_draggington[i]);
+        Deselect();
+        ResetDrag();
+    }
+
     private void ResetDrag()
     {
         _hasMoved = false;
         _isDragging = false;
         _startPoint = new Point();
         _draggington = new List<Border>();
-        _homePoint = new List<Point>();
+        _homePoints = new List<Point>();
         _doubleClickedOn = null;
     }
 
@@ -260,7 +301,7 @@ public class Table : Canvas
         _selectedCards = new List<Card>();
     }
 
-    private void MoveCardStack(Point point, List<Border> movedStack, List<Point> homePoints, bool canFail)
+    private void MoveCardStack(Point point, List<Border> movedStack, List<Point>? homePoints = null, bool canFail = false)
     {
         Card? cardHover = null;
 
@@ -296,7 +337,7 @@ public class Table : Canvas
             }
         }
 
-        if (!canFail)
+        if (!canFail || homePoints is null)
             return;
         foreach (CardStackBase otherCardStack in _cardStacks)
         {
@@ -316,7 +357,7 @@ public class Table : Canvas
             SetCanvasPosition(movedStack[i], homePoints[i]);
     }
 
-    private void MoveCards(Point point, List<Card> cards, List<Point> homepoints, bool canFail)
+    private void MoveCards(Point point, List<Card> cards, List<Point>? homepoints = null, bool canFail = false)
     {
         Card? cardHover = null;
 
@@ -347,36 +388,33 @@ public class Table : Canvas
         }
 
         Card? draggedCard = null;
-        if (cards.Count == 1)
-            draggedCard = cards[0];
-        else
+        if (canFail && homepoints is not null)
         {
-            foreach (Card card in cards)
+            if (cards.Count == 1)
+                draggedCard = cards[0];
+            else
             {
-                if (draggedCard is not null)
-                    break;
-                draggedCard = card.Bounds.Contains(point) ? card : null;
-            }
-        }
-
-        if (draggedCard is null)
-            throw new Exception("moved cards but didn't move any cards??");
-
-
-        if (canFail)
-        {
-            foreach (CardStackBase cardStack in _cardStacks)
-            {
-                if (cardStack.Bounds.Intersects(draggedCard.Bounds))
+                foreach (Card card in cards)
                 {
-                    for (int i = 0; i < cards.Count; i++)
-                        MoveCardBack(homepoints[i], cards[i]);
-                    return;
+                    if (draggedCard is not null)
+                        break;
+                    draggedCard = card.Bounds.Contains(point) ? card : null;
                 }
             }
+
+            if (draggedCard is not null)
+                foreach (CardStackBase cardStack in _cardStacks)
+                {
+                    if (cardStack.Bounds.Intersects(draggedCard.Bounds))
+                    {
+                        for (int i = 0; i < cards.Count; i++)
+                            MoveCardBack(homepoints[i], cards[i]);
+                        return;
+                    }
+                }
         }
 
-        MoveCardsToNewStack(GetCanvasPosition(draggedCard), cards);
+        MoveCardsToNewStack(GetCanvasPosition(draggedCard ?? cards[0]), cards);
     }
 
     private void MoveCardsToNewStack(Point canvasPoint, IEnumerable<Card> cards)
