@@ -53,6 +53,13 @@ public abstract class CardStackBase : Border
         List<CardViewModel> prevTopCards = new List<CardViewModel>(GetCardsToShow());
         prevTopCards.AddRange(cards);
 
+        if (this is Hand { HandType: Hand.HandTypes.OtherHand})
+            foreach (CardViewModel card in cards)
+                card.Flipped = true;
+        else
+            foreach (CardViewModel card in cards)
+                card.Flipped = false;
+
         _cards.AddRange(cards);
         RaiseCardsChanged(prevTopCards);
     }

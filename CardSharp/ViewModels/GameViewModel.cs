@@ -23,6 +23,7 @@ public class GameViewModel : ViewModelBase
         CardMoved?.Invoke(([16 + 13, 48 + 13], new Point(500, 500), false));
     }
 
+    public int PlayerCount => _playerCount;
     public IEnumerable<Card> CardList => _cardList;
 
     public GameViewModel()

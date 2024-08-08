@@ -15,15 +15,16 @@ public class Hand : CardStackBase
     }
 
     private HandTypes _handType;
-    private double _handWidth;
+    private int _handWidth;
 
     protected override int CardsToShow => _cards.Count;
 
-    protected override double CardOffset => s_cardWidth * Math.Min(1, 9.0 / Math.Max(1, _cards.Count - 1));
+    protected override double CardOffset => s_cardWidth * Math.Min(1, (_handWidth - 1.0) / Math.Max(1, _cards.Count - 1));
 
-    public double HandWidth => _handWidth;
+    public double HandWidth => s_cardWidth * _handWidth;
+    public HandTypes HandType => _handType;
 
-    public Hand(HandTypes handType, double handWidth) : base()
+    public Hand(HandTypes handType, int handWidth) : base()
     {
         _handType = handType;
         _handWidth = handWidth;

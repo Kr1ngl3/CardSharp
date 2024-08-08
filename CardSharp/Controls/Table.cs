@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using CardSharp.ViewModels;
 using DynamicData;
@@ -39,7 +41,7 @@ public class Table : Canvas
             CardStack cardStack = new CardStack();
             _cardStacks.Add(cardStack);
             Children.Add(cardStack);
-            SetCanvasPosition(cardStack, new Point(920, 510));
+            SetCanvasPosition(cardStack, new Point((Width - (double)Application.Current!.FindResource("CardWidth")!) / 2, (Height - (double)Application.Current!.FindResource("CardHeight")!) / 2));
             foreach (CardViewModel cardVM in deck)
             {
                 Card card = new Card(cardVM);
@@ -48,8 +50,7 @@ public class Table : Canvas
             }
             cardStack.CardStackChanged += OnCardStackChanged;
             cardStack.AddCards(deck);
-
-            _mainHand = new Hand(Hand.HandTypes.MainHand, (double)Application.Current!.FindResource("CardWidth")! * 10);
+            _mainHand = new Hand(Hand.HandTypes.MainHand, 10);
             _cardStacks.Add(_mainHand);
             Children.Add(_mainHand);
             SetCanvasPosition(_mainHand, new Point((Width - (double)Application.Current!.FindResource("CardWidth")! * 10 )/ 2, Height));
@@ -130,8 +131,16 @@ public class Table : Canvas
         {
             if (_doubleClickedOn is not null)
             {
-                _doubleClickedOn.ViewModel.IsSelected = true;
-                _selectedCards.Add(_doubleClickedOn);
+                if (_selectedCards.Contains(_doubleClickedOn))
+                {
+                    _doubleClickedOn.ViewModel.IsSelected = false;
+                    _selectedCards.Remove(_doubleClickedOn);
+                }
+                else
+                {
+                    _doubleClickedOn.ViewModel.IsSelected = true;
+                    _selectedCards.Add(_doubleClickedOn);
+                }
             }
             ResetDrag();
             return;
@@ -193,9 +202,14 @@ public class Table : Canvas
 
         Point mousePos = e.GetPosition(this);
 
+        bool onHand = false;
+
         foreach (Visual? visual in this.GetVisualsAt(mousePos)
                      .OrderByDescending(visual => visual.ZIndex))
         {
+            if (isAltClick && visual is Hand { HandType: Hand.HandTypes.MainHand })
+                onHand = true;
+
             if (isAltClick && visual is CardStack cardStack)
             {
                 AddItemsToBeDragged([cardStack]);
@@ -204,7 +218,7 @@ public class Table : Canvas
             if (visual is not Card { DataContext: CardViewModel cvm } card)
                 continue;
 
-            if (isAltClick)
+            if (isAltClick && onHand)
             {
                 _doubleClickedOn = card;
                 break;
