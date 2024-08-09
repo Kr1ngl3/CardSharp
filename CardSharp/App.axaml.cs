@@ -13,9 +13,11 @@ namespace CardSharp;
 
 public partial class App : Application
 {
+    public static Size SCardSize;
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        SCardSize = new Size((double)Current!.FindResource("CardWidth")!, (double)Application.Current!.FindResource("CardHeight")!);
     }
 
     public override void OnFrameworkInitializationCompleted()

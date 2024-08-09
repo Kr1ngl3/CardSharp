@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using CardSharp.ViewModels;
 using DynamicData;
@@ -37,11 +38,12 @@ public class Table : Canvas
         if (DataContext is GameViewModel vm)
         {
             vm.CardMoved += Vm_CardMoved;
+
             IEnumerable<CardViewModel> deck = vm.CreateDeck(4);
             CardStack cardStack = new CardStack();
             _cardStacks.Add(cardStack);
             Children.Add(cardStack);
-            SetCanvasPosition(cardStack, new Point((Width - (double)Application.Current!.FindResource("CardWidth")!) / 2, (Height - (double)Application.Current!.FindResource("CardHeight")!) / 2));
+            SetCanvasPosition(cardStack, new Point((Width - App.SCardSize.Width) / 2, (Height - App.SCardSize.Height) / 2));
             foreach (CardViewModel cardVM in deck)
             {
                 Card card = new Card(cardVM);
@@ -50,11 +52,30 @@ public class Table : Canvas
             }
             cardStack.CardStackChanged += OnCardStackChanged;
             cardStack.AddCards(deck);
+
             _mainHand = new Hand(Hand.HandTypes.MainHand, 10);
             _cardStacks.Add(_mainHand);
             Children.Add(_mainHand);
-            SetCanvasPosition(_mainHand, new Point((Width - (double)Application.Current!.FindResource("CardWidth")! * 10 )/ 2, Height));
+            SetCanvasPosition(_mainHand, new Point((Width - App.SCardSize.Width * 10 )/ 2, Height));
             _mainHand.CardStackChanged += OnCardStackChanged;
+
+            Hand otherHand = new Hand(Hand.HandTypes.OtherHand, 4);
+            _cardStacks.Add(otherHand);
+            Children.Add(otherHand);
+            SetCanvasPosition(otherHand, new Point((Width - App.SCardSize.Width * 10) / 2, 0));
+            otherHand.CardStackChanged += OnCardStackChanged;
+
+            Hand otherHand2 = new Hand(Hand.HandTypes.MainHand, 3, 90);
+            _cardStacks.Add(otherHand2);
+            Children.Add(otherHand2);
+            SetCanvasPosition(otherHand2, new Point(0, 300));
+            otherHand2.CardStackChanged += OnCardStackChanged;
+
+            Hand otherHand3 = new Hand(Hand.HandTypes.MainHand, 3, -90);
+            _cardStacks.Add(otherHand3);
+            Children.Add(otherHand3);
+            SetCanvasPosition(otherHand3, new Point(Width - App.SCardSize.Height, 300));
+            otherHand3.CardStackChanged += OnCardStackChanged;
         }
         base.OnAttachedToVisualTree(e);
     }
@@ -111,7 +132,10 @@ public class Table : Canvas
 
             Children.Remove(card);
             Children.Add(card);
-            SetCanvasPosition(card, GetCanvasPosition(cardStack) - new Point(-counter * e.CardOffset, 0));
+            if (cardStack is Hand { IsRotated: true })
+                SetCanvasPosition(card, GetCanvasPosition(cardStack) + new Point(0, counter * e.CardOffset));
+            else
+                SetCanvasPosition(card, GetCanvasPosition(cardStack) + new Point(counter * e.CardOffset, 0));
             counter++;
         }
     }
@@ -252,8 +276,8 @@ public class Table : Canvas
         if (control is null)
             return;
 
-        SetLeft(control, Math.Max(Math.Min(newPoint.X, Width - (double)Application.Current!.FindResource("CardWidth")!), 0));
-        SetTop(control, Math.Max(Math.Min(newPoint.Y, Height - (double)Application.Current!.FindResource("CardHeight")!), 0));
+        SetLeft(control, Math.Max(Math.Min(newPoint.X, Width - App.SCardSize.Width), 0));
+        SetTop(control, Math.Max(Math.Min(newPoint.Y, Height - App.SCardSize.Height), 0));
     }
 
     private Point GetCanvasPosition(AvaloniaObject? control)
@@ -334,7 +358,7 @@ public class Table : Canvas
                 if (cardCheck)
                     cardHover = card;
             }
-            if (visual is Hand hand && cardHover is not null)
+            if (visual is Hand { HandType: Hand.HandTypes.MainHand } hand && cardHover is not null)
             {
                 Children.Remove(cardStack);
                 _cardStacks.Remove(cardStack);
@@ -357,7 +381,11 @@ public class Table : Canvas
         {
             if (otherCardStack.Equals(cardStack))
                 continue;
-            if (otherCardStack.Bounds.Intersects(cardStack.Bounds))
+
+            Rect bounds = otherCardStack.Bounds;
+            if (otherCardStack is Hand { IsRotated: true })
+                bounds = new Rect(bounds.X, bounds.Y, bounds.Height, bounds.Width);
+            if (bounds.Intersects(cardStack.Bounds))
             {
                 MoveCardStackBack(movedStack, homePoints);
                 break;
@@ -389,7 +417,7 @@ public class Table : Canvas
                 if (cardCheck)
                     cardHover = card;
             }
-            if (visual is Hand hand && cardHover is not null)
+            if (visual is Hand { HandType: Hand.HandTypes.MainHand } hand && cardHover is not null)
             {
                 hand.AddCardsAt(cardHover.ViewModel, cards.Select(card => card.ViewModel));
                 return;
@@ -419,7 +447,10 @@ public class Table : Canvas
             if (draggedCard is not null)
                 foreach (CardStackBase cardStack in _cardStacks)
                 {
-                    if (cardStack.Bounds.Intersects(draggedCard.Bounds))
+                    Rect bounds = cardStack.Bounds;
+                    if (cardStack is Hand { IsRotated: true })
+                        bounds = new Rect(bounds.X, bounds.Y, bounds.Height, bounds.Width);
+                    if (bounds.Intersects(draggedCard.Bounds))
                     {
                         for (int i = 0; i < cards.Count; i++)
                             MoveCardBack(homepoints[i], cards[i]);

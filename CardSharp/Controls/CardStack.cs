@@ -43,7 +43,7 @@ public class CardStack : CardStackBase
 
     protected override double CardOffset =>
         _cardStackType == CardStackTypes.Default ? 0
-        : s_cardWidth * 5 / 12 / Math.Max(1, Math.Min(5, _cards.Count) - 1);
+        : App.SCardSize.Width * 5 / 12 / Math.Max(1, Math.Min(5, _cards.Count) - 1);
 
     protected override int CardsToShow =>
         _cardStackType == CardStackTypes.Default ? 2
@@ -58,7 +58,7 @@ public class CardStack : CardStackBase
     /// <summary>
     /// Gets or sets CardCount value
     /// </summary>
-    public double CardStackWidth => s_cardWidth + CardOffset * Math.Max(1, Math.Min(5, _cards.Count) - 1);
+    public double CardStackWidth => App.SCardSize.Width + CardOffset * Math.Max(1, Math.Min(5, _cards.Count) - 1);
 
     public CardStack() : base()
     {

@@ -18,13 +18,11 @@ public static class Converters
 
     public class GetCardArt : IMultiValueConverter
     {
-        private Size _cardSize;
         private double _iconHeight;
 
         public GetCardArt()
         {
-            _cardSize = new Size((double)Application.Current!.FindResource("CardWidth")!, (double)Application.Current!.FindResource("CardHeight")!);
-            _iconHeight = _cardSize.Height / 6.5;
+            _iconHeight = App.SCardSize.Height / 6.5;
         }
 
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
@@ -52,15 +50,15 @@ public static class Converters
 
             StackPanel[] columns = [
                 new StackPanel(){
-                        Margin = new Thickness(_cardSize.Width / 40, 0),
+                        Margin = new Thickness(App.SCardSize.Width / 40, 0),
                         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                     },
                     new StackPanel(){
-                        Margin = new Thickness(_cardSize.Width / 40, 0),
+                        Margin = new Thickness(App.SCardSize.Width / 40, 0),
                         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                     },
                     new StackPanel(){
-                        Margin = new Thickness(_cardSize.Width / 40, 0),
+                        Margin = new Thickness(App.SCardSize.Width / 40, 0),
                         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                     }];
 
@@ -78,7 +76,7 @@ public static class Converters
                         columns[1].Children.Add(new Image()
                         {
                             Height = _iconHeight,
-                            Margin = new Thickness(0, _cardSize.Width / 10),
+                            Margin = new Thickness(0, App.SCardSize.Width / 10),
                             Source = source
                         });
 
@@ -93,7 +91,7 @@ public static class Converters
                             columns[1].Children.Add(new Image()
                             {
                                 Height = _iconHeight,
-                                Margin = new Thickness(0, _cardSize.Width / 10),
+                                Margin = new Thickness(0, App.SCardSize.Width / 10),
                                 Source = source
                             });
                             continue;
@@ -101,7 +99,7 @@ public static class Converters
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
                             Height = _iconHeight,
-                            Margin = i < 2 ? new Thickness(0, 0, 0, _cardSize.Height / 5) : new Thickness(0, _cardSize.Height / 5, 0, 0),
+                            Margin = i < 2 ? new Thickness(0, 0, 0, App.SCardSize.Height / 5) : new Thickness(0, App.SCardSize.Height / 5, 0, 0),
                             Source = source
                         });
 
@@ -117,7 +115,7 @@ public static class Converters
                             columns[1].Children.Add(new Image()
                             {
                                 Height = _iconHeight,
-                                Margin = new Thickness(0, _cardSize.Width / 10),
+                                Margin = new Thickness(0, App.SCardSize.Width / 10),
                                 Source = source
                             });
                             continue;
@@ -125,7 +123,7 @@ public static class Converters
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
                             Height = _iconHeight,
-                            Margin = new Thickness(0, _cardSize.Width / 10),
+                            Margin = new Thickness(0, App.SCardSize.Width / 10),
                             Source = source
                         });
 
@@ -140,7 +138,7 @@ public static class Converters
                             columns[1].Children.Add(new Image()
                             {
                                 Height = _iconHeight,
-                                Margin = new Thickness(0, _cardSize.Width / 10),
+                                Margin = new Thickness(0, App.SCardSize.Width / 10),
                                 Source = source
                             });
                             continue;
@@ -148,7 +146,7 @@ public static class Converters
                         columns[i % 2 == 0 ? 0 : 2].Children.Add(new Image()
                         {
                             Height = _iconHeight,
-                            Margin = new Thickness(0, _cardSize.Width / 15),
+                            Margin = new Thickness(0, App.SCardSize.Width / 15),
                             Source = source
                         });
 

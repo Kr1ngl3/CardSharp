@@ -29,9 +29,10 @@
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Background" Value="{CompiledBinding Background}" />
+        <Setter Property="RenderTransform" Value="{CompiledBinding Angle}" />
         <Setter Property="BoxShadow" Value="0 5 40 -8 #EE000000" />
         <Setter Property="Transitions">
-			<Transitions/>
+            <Transitions />
         </Setter>
         <Setter Property="Child">
             <Template>

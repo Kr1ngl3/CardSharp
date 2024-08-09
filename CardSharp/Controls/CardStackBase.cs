@@ -23,9 +23,9 @@ public abstract class CardStackBase : Border
         }
     }
 
-    protected static double s_cardWidth = (double)Application.Current!.FindResource("CardWidth")!;
     protected static Random s_random = new Random();
 
+    protected int _angle = 0;
     protected AvaloniaList<CardViewModel> _cards = new AvaloniaList<CardViewModel>();
 
     protected abstract int CardsToShow { get; }
@@ -53,15 +53,26 @@ public abstract class CardStackBase : Border
         List<CardViewModel> prevTopCards = new List<CardViewModel>(GetCardsToShow());
         prevTopCards.AddRange(cards);
 
-        if (this is Hand { HandType: Hand.HandTypes.OtherHand})
-            foreach (CardViewModel card in cards)
-                card.Flipped = true;
-        else
-            foreach (CardViewModel card in cards)
-                card.Flipped = false;
-
         _cards.AddRange(cards);
         RaiseCardsChanged(prevTopCards);
+        
+        if (this is Hand { HandType: Hand.HandTypes.OtherHand })
+        {
+            foreach (CardViewModel card in cards)
+            {
+                card.Flipped = true;
+                card.AngleVal = _angle;
+            }
+            Shuffle();
+        }
+        else
+        {
+            foreach (CardViewModel card in cards)
+            {
+                card.Flipped = false;
+                card.AngleVal = _angle;
+            }
+        }
     }
 
     public void AddCardsAt(CardViewModel card, CardStackBase cardStack)
@@ -69,9 +80,9 @@ public abstract class CardStackBase : Border
         AddCardsAt(card, cardStack._cards);
     }
 
-    public void AddCardsAt(CardViewModel card, IEnumerable<CardViewModel> cards)
+    public void AddCardsAt(CardViewModel atCard, IEnumerable<CardViewModel> cards)
     {
-        _cards.InsertRange(_cards.IndexOf(card) + 1, cards);
+        _cards.InsertRange(_cards.IndexOf(atCard) + 1, cards);
         RaiseCardsChanged(_cards);
     }
 
