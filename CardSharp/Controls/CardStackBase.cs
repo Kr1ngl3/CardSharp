@@ -5,6 +5,8 @@ using CardSharp.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 
 namespace CardSharp.Controls;
 public abstract class CardStackBase : Border
@@ -63,7 +65,8 @@ public abstract class CardStackBase : Border
                 card.Flipped = true;
                 card.Angle = _angle;
             }
-            Shuffle();
+            // wait before shuffeling until after animation has played
+            Dispatcher.UIThread.Post(async () => { await Task.Delay(350); Shuffle(); }); 
         }
         else
         {
