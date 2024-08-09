@@ -87,6 +87,11 @@ public abstract class CardStackBase : Border
     {
         _cards.InsertRange(_cards.IndexOf(atCard) + 1, cards);
         RaiseCardsChanged(_cards);
+        foreach (CardViewModel card in cards)
+        {
+            card.Flipped = false;
+            card.Angle = _angle;
+        }
     }
 
     public void RemoveCard(CardViewModel card)
