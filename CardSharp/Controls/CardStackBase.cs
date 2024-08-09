@@ -61,7 +61,7 @@ public abstract class CardStackBase : Border
             foreach (CardViewModel card in cards)
             {
                 card.Flipped = true;
-                card.AngleVal = _angle;
+                card.Angle = _angle;
             }
             Shuffle();
         }
@@ -70,7 +70,7 @@ public abstract class CardStackBase : Border
             foreach (CardViewModel card in cards)
             {
                 card.Flipped = false;
-                card.AngleVal = _angle;
+                card.Angle = _angle;
             }
         }
     }

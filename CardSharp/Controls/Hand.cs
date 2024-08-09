@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.LogicalTree;
+using Avalonia.Media;
 using System;
 
 namespace CardSharp.Controls;
@@ -20,15 +21,22 @@ public class Hand : CardStackBase
     public HandTypes HandType => _handType;
     public bool IsRotated => _angle != 0;
 
-    public Hand(HandTypes handType, int handWidth, int angle = 0) : base()
+    public Hand(HandTypes handType, int handWidth, int angle) : base()
     {
         _handType = handType;
         _handWidth = handWidth;
-        _angle = angle;
+        _angle = angle; 
         TransformGroup transform = new TransformGroup();
         RenderTransform = transform;
         transform.Children.Add(new RotateTransform(angle));
         if (angle != 0)
             transform.Children.Add(new TranslateTransform(-HandWidth/4, HandWidth/4));
+    }
+
+    public void SelectAll()
+    {
+        if (this.GetLogicalParent() is not Table table)
+            return;
+        table.AddSelectedCards(_cards);
     }
 }

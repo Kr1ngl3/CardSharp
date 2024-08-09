@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using CardSharp.Models;
 using CardSharp.ViewModels;
 using DynamicData;
 using System;
@@ -31,7 +32,7 @@ public class Table : Canvas
     private Dictionary<CardViewModel, Card> _cardContainers = new Dictionary<CardViewModel, Card>();
     private Dictionary<byte, Card> _cardHashTable = new Dictionary<byte, Card>();
     private List<CardStackBase> _cardStacks = new List<CardStackBase>();
-    private Hand _mainHand = null!;
+    private List<Hand> _hands = new List<Hand>();
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -53,36 +54,65 @@ public class Table : Canvas
             cardStack.CardStackChanged += OnCardStackChanged;
             cardStack.AddCards(deck);
 
-            _mainHand = new Hand(Hand.HandTypes.MainHand, 10);
-            _cardStacks.Add(_mainHand);
-            Children.Add(_mainHand);
-            SetCanvasPosition(_mainHand, new Point((Width - App.SCardSize.Width * 10 )/ 2, Height));
-            _mainHand.CardStackChanged += OnCardStackChanged;
-
-            Hand otherHand = new Hand(Hand.HandTypes.OtherHand, 4);
-            _cardStacks.Add(otherHand);
-            Children.Add(otherHand);
-            SetCanvasPosition(otherHand, new Point((Width - App.SCardSize.Width * 10) / 2, 0));
-            otherHand.CardStackChanged += OnCardStackChanged;
-
-            Hand otherHand2 = new Hand(Hand.HandTypes.MainHand, 3, 90);
-            _cardStacks.Add(otherHand2);
-            Children.Add(otherHand2);
-            SetCanvasPosition(otherHand2, new Point(0, 300));
-            otherHand2.CardStackChanged += OnCardStackChanged;
-
-            Hand otherHand3 = new Hand(Hand.HandTypes.MainHand, 3, -90);
-            _cardStacks.Add(otherHand3);
-            Children.Add(otherHand3);
-            SetCanvasPosition(otherHand3, new Point(Width - App.SCardSize.Height, 300));
-            otherHand3.CardStackChanged += OnCardStackChanged;
+            _hands.Add(MakeHand(Hand.HandTypes.MainHand, 10, 0));
+            SetCanvasPosition(_hands[0], new Point((Width - App.SCardSize.Width * 10 )/ 2, Height));
+            _hands.AddRange(MakeHands(vm.PlayerCount));
         }
         base.OnAttachedToVisualTree(e);
     }
 
-    private async void Vm_CardMoved((byte[] hashes, Point point, bool isCardStack) data)
+    private Hand MakeHand(Hand.HandTypes handType, int width, int angle)
     {
-        List<Card> cards = new List<Card>(data.hashes.Select(hash => _cardHashTable[hash]));
+        Hand hand = new Hand(handType, width, angle);
+        _cardStacks.Add(hand);
+        Children.Add(hand);
+        hand.CardStackChanged += OnCardStackChanged;
+        return hand;
+    }
+
+    private IEnumerable<Hand> MakeHands(int playerCount)
+    {
+        List<Hand> list = new List<Hand>();
+        if (playerCount % 2 == 0)
+        {
+            Hand hand = MakeHand(Hand.HandTypes.OtherHand, 3, 0);
+            SetCanvasPosition(hand, new Point((Width - App.SCardSize.Width * 3) / 2, 0));
+            list.Add(hand);
+        }
+        if (playerCount % 2 != 0)
+        {
+            Hand hand = MakeHand(Hand.HandTypes.OtherHand, 3, 0);
+            Hand hand2 = MakeHand(Hand.HandTypes.OtherHand, 3, 0);
+            SetCanvasPosition(hand, new Point((Width - App.SCardSize.Width * 9) / 2, 0));
+            SetCanvasPosition(hand2, new Point((Width + App.SCardSize.Width * 3) / 2, 0));
+            list.Add(hand);
+            list.Add(hand2);
+        }
+        if (playerCount == 6)
+        {
+            Hand hand = MakeHand(Hand.HandTypes.OtherHand, 3, 0);
+            Hand hand2 = MakeHand(Hand.HandTypes.OtherHand, 3, 0);
+            SetCanvasPosition(hand, new Point((Width - App.SCardSize.Width * 11) / 2, 0));
+            SetCanvasPosition(hand2, new Point((Width + App.SCardSize.Width * 5) / 2, 0));
+            list.Add(hand);
+            list.Add(hand2);
+        }
+        if (playerCount >= 4)
+        {
+            Hand hand = MakeHand(Hand.HandTypes.OtherHand, 3, 90);
+            Hand hand2 = MakeHand(Hand.HandTypes.OtherHand, 3, -90);
+            SetCanvasPosition(hand, new Point(0, (Height - App.SCardSize.Width * 3) / 2));
+            SetCanvasPosition(hand2, new Point(Width - App.SCardSize.Height, (Height - App.SCardSize.Width * 3) / 2));
+            list.Add(hand);
+            list.Add(hand2);
+        }
+        return list.OrderBy(hand => GetCanvasPosition(hand).X);
+    }
+
+    private async void Vm_CardMoved((byte[] cardHashes, Point? point, int player, bool isCardStack) data)
+    {
+        List<Card> cards = new List<Card>(data.cardHashes.Select(hash => _cardHashTable[hash]));
+
 
         // cancel current drag if one of the dragging cards is moved from server
         foreach (Card card in cards)
@@ -93,28 +123,45 @@ public class Table : Canvas
                 Deselect();
             card.Classes.Add("fromServer");
         }
+        Point point;
+        if (data.point is not null)
+            point = data.point.Value;
+        else
+            point = _hands[data.player].Bounds.TopLeft;
+
 
         if (data.isCardStack)
         {
             List<Border> items = [_cardStacks.Find(stack => stack.ContainsCard(cards[0].ViewModel))!];
             items.AddRange(cards);
             foreach (Border item in items)
-                SetCanvasPosition(item, data.point);
+                SetCanvasPosition(item, point);
+            // wait for animation
             await Task.Delay(350);
-            MoveCardStack(data.point, items);
+            MoveCardStack(point, items);
         }
         else
         {
             foreach (Card card in cards)
             {
-                SetCanvasPosition(card, data.point);
+                SetCanvasPosition(card, point);
                 RemoveCardFromCardStack(card);
             }
+            // wait  for animation
             await Task.Delay(350);
-            MoveCards(data.point, cards);
+            MoveCards(point, cards);
         }
         foreach (Card card in cards)
             card.Classes.Remove("fromServer");
+    }
+
+    public void AddSelectedCards(IEnumerable<CardViewModel> cardVMs)
+    {
+        Deselect();
+        foreach (CardViewModel cardVM in cardVMs)
+            cardVM.IsSelected = true;
+        foreach (Card card in cardVMs.Select(cardVM => _cardContainers[cardVM]))
+            _selectedCards.Add(card);
     }
 
     private void OnCardStackChanged(CardStackBase.CardStackChangedEventArgs e)
@@ -345,7 +392,7 @@ public class Table : Canvas
 
         CardStack cardStack = (CardStack)movedStack[0];
         movedStack.Reverse();
-        foreach (Visual? visual in this.GetVisualsAt(point)
+        foreach (Visual? visual in this.GetVisualsAt(point + new Point(1, 1))
                 .OrderBy(x => x.ZIndex))
         {
             if (visual is Card card && cardHover is null)
@@ -404,7 +451,7 @@ public class Table : Canvas
         Card? cardHover = null;
 
 
-        foreach (Visual? visual in this.GetVisualsAt(point)
+        foreach (Visual? visual in this.GetVisualsAt(point + new Point(1, 1))
                        .OrderBy(x => x.ZIndex))
         {
             if (visual is Card card && cardHover is null)

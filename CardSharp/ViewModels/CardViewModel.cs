@@ -1,5 +1,8 @@
 ﻿using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Transformation;
@@ -47,7 +50,7 @@ public class CardViewModel : ViewModelBase
     public ISolidColorBrush Background => _isSelected ? Brushes.SkyBlue : Brushes.White;
     public bool IsSelected { get => _isSelected; set => this.RaiseAndSetIfChanged(ref _isSelected, value, nameof(Background)); }
     public bool Flipped { get => _flipped; set => this.RaiseAndSetIfChanged(ref _flipped, value, nameof(Flipped)); }
-    public int AngleVal { set 
+    public int Angle { set 
         {
             (_transform.Children[0] as RotateTransform)!.Angle = value;
             if (value == 90 || value == -90)
@@ -60,16 +63,29 @@ public class CardViewModel : ViewModelBase
                 (_transform.Children[1] as TranslateTransform)!.Y = 0;
                 (_transform.Children[1] as TranslateTransform)!.X = 0;
             }
+            this.RaisePropertyChanged(nameof(Transform));
         }
     }
-    public TransformGroup Angle => _transform;
+    public TransformGroup Transform => _transform;
     public byte Hash => (byte)((15 & (int)_suit) << 4 | (15 & (int)_rank));
     
     public CardViewModel(int rank, int suit)
     {
         _suit = (Suits)suit;
         _rank = (Ranks)rank;
-        _transform.Children.Add(new RotateTransform(0));
+
+        DoubleTransition transition = new DoubleTransition()
+        {
+            Duration = TimeSpan.FromSeconds(.35),
+            Easing = new CubicEaseInOut(),
+            Property = RotateTransform.AngleProperty
+        };
+        RotateTransform rotateTransform = new RotateTransform()
+        {
+            Transitions = [transition]
+        };
+
+        _transform.Children.Add(rotateTransform);
         _transform.Children.Add(new TranslateTransform(0, 0));
     }
 

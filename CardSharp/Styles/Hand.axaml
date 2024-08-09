@@ -22,7 +22,9 @@
         <Setter Property="Width" Value="{CompiledBinding HandWidth}" />
         <Setter Property="ZIndex" Value="1" />
         <Setter Property="ContextMenu">
-            <ContextMenu />
+            <ContextMenu>
+                <MenuItem Command="{CompiledBinding SelectAll}" Header="Select All" />
+            </ContextMenu>
         </Setter>
         <Setter Property="Child">
             <Template>

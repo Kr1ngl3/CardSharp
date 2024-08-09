@@ -29,7 +29,7 @@
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Background" Value="{CompiledBinding Background}" />
-        <Setter Property="RenderTransform" Value="{CompiledBinding Angle}" />
+        <Setter Property="RenderTransform" Value="{CompiledBinding Transform}" />
         <Setter Property="BoxShadow" Value="0 5 40 -8 #EE000000" />
         <Setter Property="Transitions">
             <Transitions />
@@ -83,15 +83,16 @@
         </Setter>
 
         <Style Selector="^.fromServer">
+            <Setter Property="ZIndex" Value="1" />
             <Setter Property="Transitions">
                 <Transitions>
                     <DoubleTransition
                         Easing="CubicEaseInOut"
-                        Property="(Canvas.Left)"
+                        Property="Canvas.Left"
                         Duration="0:0:0.35" />
                     <DoubleTransition
                         Easing="CubicEaseInOut"
-                        Property="(Canvas.Top)"
+                        Property="Canvas.Top"
                         Duration="0:0:0.35" />
                 </Transitions>
             </Setter>

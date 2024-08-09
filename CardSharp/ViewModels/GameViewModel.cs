@@ -13,34 +13,18 @@ namespace CardSharp.ViewModels;
 public class GameViewModel : ViewModelBase
 {
     private int _playerCount;
-    
-    private AvaloniaList<Card> _cardList = new AvaloniaList<Card>();
-    private AvaloniaList<Card> _topDeck = new AvaloniaList<Card>();
 
-    public event Action<(byte[], Point, bool)>? CardMoved;
+    public event Action<(byte[] cardHashes, Point? point, int player, bool isStack)>? CardMoved;
     public void Move()
     {
-        CardMoved?.Invoke(([16 + 13, 48 + 13], new Point(500, 500), false));
+        CardMoved?.Invoke(([16 + 13, 48 + 13], null, 5, false));
     }
 
     public int PlayerCount => _playerCount;
-    public IEnumerable<Card> CardList => _cardList;
 
-    public GameViewModel()
-    {
-        _playerCount = 4;
-        for (int i = 0; i < 6; i++)
-            _cardList.Add(new Card());
-    }
     public GameViewModel(int playerCount)
     {
         _playerCount = playerCount;
-    }
-    public void Add()
-    {
-        _cardList.Add(new Card());
-        _topDeck.Clear();
-        _topDeck.AddRange(_cardList.Skip(Math.Max(0, _cardList.Count() - 5)));
     }
 
 
