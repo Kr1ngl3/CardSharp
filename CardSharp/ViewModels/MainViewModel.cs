@@ -14,7 +14,7 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel(TopLevel topLevel)
     {
-        _currentViewModel = new TitleScreenViewModel(() => CurrentViewModel = new HostViewModel(i => CurrentViewModel = new GameViewModel(i), topLevel.Clipboard));
+        _currentViewModel = new TitleScreenViewModel(() => CurrentViewModel = new HostViewModel((playerCount, player) => CurrentViewModel = new GameViewModel(playerCount, player), topLevel.Clipboard));
         _topLevel = topLevel;
 
         if (_topLevel.InsetsManager is not null)

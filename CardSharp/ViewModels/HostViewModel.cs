@@ -19,8 +19,8 @@ namespace CardSharp.ViewModels;
 
 public class HostViewModel : ViewModelBase
 {
-    private Server _server = new TestServer(6);
-    private Action<int> _toGame;
+    private Server _server = new Server();
+    private Action<int, int> _toGame;
     private IClipboard? _clipboard;
     private string _greeting = "Welcome";
     private AvaloniaList<string> _names = new AvaloniaList<string>();
@@ -28,7 +28,7 @@ public class HostViewModel : ViewModelBase
     public string Greeting { get => _greeting; set => this.RaiseAndSetIfChanged(ref _greeting, value, nameof(Greeting)); }
     public IEnumerable<string> Names => _names;
 
-    public HostViewModel(Action<int> toGame, IClipboard? clipBoard)
+    public HostViewModel(Action<int, int> toGame, IClipboard? clipBoard)
     {
         _clipboard = clipBoard;
         _toGame = toGame;
@@ -45,7 +45,7 @@ public class HostViewModel : ViewModelBase
     {
         _server.CancelSearch();
         Greeting = "Started game";
-        _toGame(_names.Count);
+        _toGame(_names.Count, 0);
     }
 
     public async Task Copy()

@@ -78,12 +78,12 @@ public abstract class CardStackBase : Border
         }
     }
 
-    public void AddCardsAt(CardViewModel card, CardStackBase cardStack)
+    public void InsertCards(CardViewModel card, CardStackBase cardStack)
     {
-        AddCardsAt(card, cardStack._cards);
+        InsertCards(card, cardStack._cards);
     }
 
-    public void AddCardsAt(CardViewModel atCard, IEnumerable<CardViewModel> cards)
+    public void InsertCards(CardViewModel atCard, IEnumerable<CardViewModel> cards)
     {
         _cards.InsertRange(_cards.IndexOf(atCard) + 1, cards);
         RaiseCardsChanged(_cards);

@@ -10,6 +10,7 @@ using CardSharp.ViewModels;
 using DynamicData;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,11 +25,13 @@ public class Table : Canvas
     private Card? _doubleClickedOn;
     private bool _isDragging;
     private bool _hasMoved;
+    private bool _isFromMainHand;
 
     // used when selecting cards
     private List<Card> _selectedCards = new List<Card>();
 
     // used all throughout
+    private GameViewModel _viewModel = null!;
     private Dictionary<CardViewModel, Card> _cardContainers = new Dictionary<CardViewModel, Card>();
     private Dictionary<byte, Card> _cardHashTable = new Dictionary<byte, Card>();
     private List<CardStackBase> _cardStacks = new List<CardStackBase>();
@@ -36,11 +39,12 @@ public class Table : Canvas
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        if (DataContext is GameViewModel vm)
+        if (DataContext is GameViewModel viewModel)
         {
-            vm.CardMoved += Vm_CardMoved;
+            _viewModel = viewModel;
+            viewModel.CardMoved += Vm_CardMoved;
 
-            IEnumerable<CardViewModel> deck = vm.CreateDeck(4);
+            IEnumerable<CardViewModel> deck = viewModel.CreateDeck(4);
             CardStack cardStack = new CardStack();
             _cardStacks.Add(cardStack);
             Children.Add(cardStack);
@@ -56,7 +60,7 @@ public class Table : Canvas
 
             _hands.Add(MakeHand(Hand.HandTypes.MainHand, 10, 0));
             SetCanvasPosition(_hands[0], new Point((Width - App.SCardSize.Width * 10 )/ 2, Height));
-            _hands.AddRange(MakeHands(vm.PlayerCount));
+            _hands.AddRange(MakeHands(viewModel.PlayerCount));
         }
         base.OnAttachedToVisualTree(e);
     }
@@ -221,17 +225,17 @@ public class Table : Canvas
         {
             List<Border> newList = _draggington.ConvertAll(border => border);
             List<Point> newHomePoints = _homePoints.ConvertAll(point => point);
+            MoveCardStack(mousePos, newList, newHomePoints, true);
             ResetDrag();
             Deselect();
-            MoveCardStack(mousePos, newList, newHomePoints, true);
         }
         else
         {
             List<Card> newList = _draggington.ConvertAll(card => (Card)card);
             List<Point> newHomePoints = _homePoints.ConvertAll(point => point);
+            MoveCards(mousePos, newList, newHomePoints, true);
             ResetDrag();
             Deselect();
-            MoveCards(mousePos, newList, newHomePoints, true);
         }
     }
 
@@ -342,6 +346,10 @@ public class Table : Canvas
         if (cardStackBase is null)
             return;
 
+        // flag for if card being dragged is from your own hand
+        if (_isDragging && cardStackBase.Equals(_hands[0]))
+            _isFromMainHand = true;
+
         cardStackBase.RemoveCard(card.ViewModel);
 
         // can only be true if cardstackbase is an empty cardstack, since hand has no IsEmpty method
@@ -377,6 +385,7 @@ public class Table : Canvas
         _draggington = new List<Border>();
         _homePoints = new List<Point>();
         _doubleClickedOn = null;
+        _isFromMainHand = false;
     }
 
     private void Deselect()
@@ -409,7 +418,9 @@ public class Table : Canvas
             {
                 Children.Remove(cardStack);
                 _cardStacks.Remove(cardStack);
-                hand.AddCardsAt(cardHover.ViewModel, cardStack);
+                hand.InsertCards(cardHover.ViewModel, cardStack);
+
+                _viewModel.Move(movedStack.FindAll(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), point, 0, true);
                 return;
             }
             if (visual is CardStackBase otherCardStack && !otherCardStack.Equals(cardStack))
@@ -418,6 +429,8 @@ public class Table : Canvas
                 _cardStacks.Remove(cardStack);
 
                 otherCardStack.AddCards(cardStack);
+
+                _viewModel.Move(movedStack.FindAll(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), point, _hands.Contains(otherCardStack) ? _hands.IndexOf(otherCardStack) : _viewModel.PlayerCount, true);
                 return;
             }
         }
@@ -438,6 +451,8 @@ public class Table : Canvas
                 break;
             }
         }
+
+        _viewModel.Move(movedStack.FindAll(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), GetCanvasPosition(movedStack[0]), _viewModel.PlayerCount, true);
     }
 
     private void MoveCardStackBack(List<Border> movedStack, List<Point> homePoints)
@@ -466,12 +481,16 @@ public class Table : Canvas
             }
             if (visual is Hand { HandType: Hand.HandTypes.MainHand } hand && cardHover is not null)
             {
-                hand.AddCardsAt(cardHover.ViewModel, cards.Select(card => card.ViewModel));
+                hand.InsertCards(cardHover.ViewModel, cards.Select(card => card.ViewModel));
+                if (!_isFromMainHand)
+                    _viewModel.Move(cards.Select(card => card.ViewModel.Hash).ToArray(), point, 0, false);
                 return;
             }
             if (visual is CardStackBase cardStack)
             {
                 cardStack.AddCards(cards.Select(card => card.ViewModel));
+                if (!(cardStack is Hand { HandType: Hand.HandTypes.MainHand } && _isFromMainHand))
+                    _viewModel.Move(cards.Select( card => card.ViewModel.Hash).ToArray(), point, _hands.Contains(cardStack) ? _hands.IndexOf(cardStack) : _viewModel.PlayerCount, false);
                 return;
             }
         }
@@ -492,6 +511,7 @@ public class Table : Canvas
             }
 
             if (draggedCard is not null)
+            {
                 foreach (CardStackBase cardStack in _cardStacks)
                 {
                     Rect bounds = cardStack.Bounds;
@@ -504,9 +524,11 @@ public class Table : Canvas
                         return;
                     }
                 }
+            }
         }
-
-        MoveCardsToNewStack(GetCanvasPosition(draggedCard ?? cards[0]), cards);
+        Point cardPoint = GetCanvasPosition(draggedCard ?? cards[0]);
+        MoveCardsToNewStack(cardPoint, cards);
+        _viewModel.Move(cards.Select(card => card.ViewModel.Hash).ToArray(), cardPoint, _viewModel.PlayerCount, false);
     }
 
     private void MoveCardsToNewStack(Point canvasPoint, IEnumerable<Card> cards)
