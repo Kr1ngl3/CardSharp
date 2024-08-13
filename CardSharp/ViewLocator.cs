@@ -3,7 +3,7 @@ using Avalonia.Controls.Templates;
 using CardSharp.ViewModels;
 using System;
 
-namespace CardSharp.Controls;
+namespace CardSharp;
 public class ViewLocator : IDataTemplate
 {
     public Control? Build(object? data)

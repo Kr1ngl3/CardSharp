@@ -420,7 +420,7 @@ public class Table : Canvas
                 _cardStacks.Remove(cardStack);
                 hand.InsertCards(cardHover.ViewModel, cardStack);
 
-                _viewModel.Move(movedStack.FindAll(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), point, 0, true);
+                _viewModel.Move(movedStack.Where(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), point, 0, true);
                 return;
             }
             if (visual is CardStackBase otherCardStack && !otherCardStack.Equals(cardStack))
@@ -430,7 +430,7 @@ public class Table : Canvas
 
                 otherCardStack.AddCards(cardStack);
 
-                _viewModel.Move(movedStack.FindAll(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), point, _hands.Contains(otherCardStack) ? _hands.IndexOf(otherCardStack) : _viewModel.PlayerCount, true);
+                _viewModel.Move(movedStack.Where(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), point, _hands.Contains(otherCardStack) ? _hands.IndexOf(otherCardStack) : _viewModel.PlayerCount, true);
                 return;
             }
         }
@@ -452,7 +452,7 @@ public class Table : Canvas
             }
         }
 
-        _viewModel.Move(movedStack.FindAll(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), GetCanvasPosition(movedStack[0]), _viewModel.PlayerCount, true);
+        _viewModel.Move(movedStack.Where(item => item is Card).Select(card => (card as Card)!.ViewModel.Hash).ToArray(), GetCanvasPosition(movedStack[0]), _viewModel.PlayerCount, true);
     }
 
     private void MoveCardStackBack(List<Border> movedStack, List<Point> homePoints)
@@ -464,7 +464,6 @@ public class Table : Canvas
     private void MoveCards(Point point, List<Card> cards, List<Point>? homepoints = null, bool canFail = false)
     {
         Card? cardHover = null;
-
 
         foreach (Visual? visual in this.GetVisualsAt(point + new Point(1, 1))
                        .OrderBy(x => x.ZIndex))

@@ -22,6 +22,7 @@
         <StackPanel Orientation="Horizontal">
             <Button Command="{CompiledBinding HostGame}">Click to host</Button>
             <Button Command="{CompiledBinding JoinGame}">Click to join</Button>
+            <Button Command="{CompiledBinding SendData}">Click to Send</Button>
         </StackPanel>
         <TextBox Text="{CompiledBinding Ip}" />
     </StackPanel>
